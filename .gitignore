@@ -1,0 +1,12 @@
+*.zip
+*.log
+*.tmp
+*.bak
+*.wtf
+SavedVariables/
+Logs/
+*.exe
+*.dll
+*.mpq
+.DS_Store
+Thumbs.db
