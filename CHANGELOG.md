@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1-test
+
+Correctif de chargement. La zone de déplacement lisait un champ `points` qui n’existe que dans les tests, ce qui bloquait l’ouverture dans le jeu.
+
 ## 0.6.0-test
 
 Interface du gestionnaire réorganisée. Le chemin affiché est désormais : profil actif, addon, onglet, puis section repliable et réglage. Le second bouton « Gérer les profils » à côté du profil a été retiré en mode Grimoire. En mode Compact, le profil est le premier choix et l’addon le second.

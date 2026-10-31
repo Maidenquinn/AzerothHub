@@ -239,13 +239,16 @@ function H.LayoutManager()
  if sw>64 and sh>64 then ui:SetScale(math.min(1,(sw-32)/w,(sh-32)/h)) else ui:SetScale(1) end
  place(ui.header,ui,0,0,216,48);place(ui.title,ui.header,12,8,190,30)
  place(ui.close,ui,w-40,10,28,28);place(ui.styleButton,ui,w-156,10,108,28)
- place(ui.profile,ui,228,10,compact and 172 or 206,28)
- place(ui.manage,ui,408,10,compact and 214 or 28,28)
+ local profileW=compact and 172 or 206
+ local manageW=compact and 214 or 28
+ place(ui.profile,ui,228,10,profileW,28)
+ place(ui.manage,ui,408,10,manageW,28)
  show(ui.profile,not atelier);show(ui.manage,compact)
  show(ui.hint,false);show(ui.saved,false);show(ui.subtitle,false)
+ -- The real client has no frame.points table; that field exists only in the test mock.
  local dragL=216
- if ui.profile:IsShown() then dragL=math.max(dragL,ui.profile.points[4]+ui.profile:GetWidth()+8) end
- if ui.manage:IsShown() then dragL=math.max(dragL,ui.manage.points[4]+ui.manage:GetWidth()+8) end
+ if not atelier then dragL=math.max(dragL,228+profileW+8) end
+ if compact then dragL=math.max(dragL,408+manageW+8) end
  local dragR=w-164
  if dragR-dragL>20 then place(ui.drag,ui,dragL,0,dragR-dragL,48);show(ui.drag,true) else show(ui.drag,false) end
  local top,bottom=56,h-44;ui.bodyTop,ui.bodyBottom=top,bottom

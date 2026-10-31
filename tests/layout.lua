@@ -75,5 +75,8 @@ assert(string.len(cap)<string.len("Profil : "..huge) and string.find(cap,"...",1
 H.message=nil;H.needsReload=true;H.RefreshUI()
 assert(ui.reload:IsShown() and string.find(string.lower(ui.status:GetText()),"rechargement",1,true))
 H.needsReload=nil;H.RefreshUI();assert(not ui.reload:IsShown())
+ui.profile.points=nil;ui.manage.points=nil
+assert(H.SetAppearance("compact"));assert(ui.drag:IsShown() and ui.manage:IsShown())
+assert(H.SetAppearance("grimoire"));assert(ui.drag:IsShown() and not ui.manage:IsShown())
 assert(T.writes==0 and T.reloads==0)
 print("PASS: hierarchy, clipped text, separated hit rectangles, preview column, scales, reload affordance")

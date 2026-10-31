@@ -2,12 +2,12 @@
 
 Centre de réglages pour Azeroth Survivors. Un bouton sur la minimap ouvre les autres addons et leurs réglages intégrés, avec des profils réutilisables.
 
-Interface 11200, Lua 5.0. Version **0.6.0-test** : les suites hors jeu passent. Cette version n’est pas annoncée comme stable.
+Interface 11200, Lua 5.0. Version **0.6.1-test** : les suites hors jeu passent. Cette version n’est pas annoncée comme stable.
 
 ## Installation
 
 1. Fermer le jeu.
-2. Télécharger `AzerothHub-0.6.0-test.zip` depuis les [releases](https://github.com/Maidenquinn/AzerothHub/releases) — pas l’archive « Source code » générée par GitHub.
+2. Télécharger `AzerothHub-0.6.1-test.zip` depuis les [releases](https://github.com/Maidenquinn/AzerothHub/releases) — pas l’archive « Source code » générée par GitHub.
 3. Extraire le dossier `AzerothHub` dans `benilla-config/AddOns` du client réellement lancé.
 4. Vérifier que `AddOns/AzerothHub/AzerothHub.toc` existe, sans dossier imbriqué une seconde fois.
 5. Relancer le jeu.

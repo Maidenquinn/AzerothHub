@@ -2,7 +2,7 @@
 ## Title: Azeroth Hub
 ## Notes: Lanceur central, profils d'addons et reglages integres. /azhub
 ## Author: Maidenhead
-## Version: 0.6.0-test
+## Version: 0.6.1-test
 ## SavedVariables: AzerothHubDB
 Inventory.lua
 Core.lua
