@@ -82,6 +82,13 @@ local function fit(text,width,size)
  if string.len(text)<=maxc then return text end
  return string.sub(text,1,maxc-3).."..."
 end
+local function plural(n,one,many) return n.." "..(n>1 and many or one) end
+local function tint(fs,role)
+ fs.hubRole=role or "text"
+ local t=theme()
+ local c=fs.hubRole=="accent" and t.accent or fs.hubRole=="muted" and {.66,.66,.63} or t.text
+ if fs.SetTextColor then fs:SetTextColor(c[1],c[2],c[3]) end
+end
 local function updatePreview()
  local p=ui.cursorPreview
  if not previewAvailable() then p:Hide();return end
@@ -125,7 +132,14 @@ function H.HideManager()
 end
 function H.LaunchAddon(name,right)
  H.HideManager()
- for _,r in pairs(H.buttons) do if r.addon==name then return H.LaunchButton(r,right) end end
+ local fallback
+ for _,r in pairs(H.buttons) do
+  if r.addon==name then
+   if r.name and string.find(r.name,"MinimapButton",1,true) then return H.LaunchButton(r,right) end
+   fallback=fallback or r
+  end
+ end
+ if fallback then return H.LaunchButton(fallback,right) end
  return H.Open(name)
 end
 local translations={book="Livre",Reading="Lecture",Book="Livre",Wishlist="Liste de souhaits",wish="Liste de souhaits",Window="Affichage",Contents="Contenu",warn="Alertes",Display="Affichage",Colours="Couleurs",Sounds="Sons",General="General",Windows="Fenetres",Layout="Disposition",Coop="Cooperation"}
@@ -300,17 +314,40 @@ function H.RefreshUI()
  end
  local shownRails=0;for _,b in ipairs(ui.railProfiles) do if b:IsShown() then shownRails=shownRails+1 end end
  place(ui.railManage,ui.profileRail,8,math.min(ui.profileRail:GetHeight()-42,32+shownRails*38+6),152,30)
- local rows={};local q=string.lower(ui.search:GetText() or "")
- for _,r in ipairs(H.rows) do if q=="" or string.find(string.lower(r.name.." "..r.title),q,1,true) then table.insert(rows,r) end end
- ui.filteredRows=rows;ui.addonOffset=math.max(0,math.min(ui.addonOffset or 0,math.max(0,table.getn(rows)-ui.addonCount)))
- ui.count:SetText("Addons  "..table.getn(H.rows))
- for i,row in ipairs(ui.rows) do
-  local r=i<=ui.addonCount and rows[ui.addonOffset+i] or nil;show(row,r~=nil);row.addon=r and r.name
-  if r then
+ -- Trois groupes : schema Hub, charges sans schema, catalogue non charge (pas encore installes / desactives).
+ local ready,openOnly,catalog={},{},{}
+ local q=string.lower(ui.search:GetText() or "")
+ for _,r in ipairs(H.rows) do
+  if q=="" or string.find(string.lower(r.name.." "..(r.title or "")),q,1,true) then
    local n=table.getn(H.Options(r.name))
-   row.title:SetText(fit(H.DisplayTitle(r),row.title:GetWidth(),12))
-   row.state:SetText(r.loaded and (n>0 and "Charge" or "Options d'origine") or "Installe")
-   row.hubSelected=H.selected==r.name;paint(row)
+   if n>0 then table.insert(ready,r)
+   elseif r.loaded then table.insert(openOnly,r)
+   else table.insert(catalog,r) end
+  end
+ end
+ local rows={}
+ local function pushGroup(label,list)
+  if table.getn(list)==0 then return end
+  table.insert(rows,{group=true,label=label,count=table.getn(list)})
+  for _,r in ipairs(list) do table.insert(rows,r) end
+ end
+ pushGroup("Avec reglages",ready)
+ pushGroup("Charges sans schema Hub",openOnly)
+ pushGroup("Catalogue (non charges)",catalog)
+ ui.filteredRows=rows;ui.addonOffset=math.max(0,math.min(ui.addonOffset or 0,math.max(0,table.getn(rows)-ui.addonCount)))
+ ui.count:SetText("Addons  "..table.getn(H.rows).."  |  "..table.getn(ready).." reglages")
+ for i,row in ipairs(ui.rows) do
+  local r=i<=ui.addonCount and rows[ui.addonOffset+i] or nil
+  show(row,r~=nil);row.addon=nil
+  if r and r.group then
+   row.hubSurface="panel";row.hubSelected=false;paint(row)
+   row.title:SetText(fit(r.label,row.title:GetWidth(),12));tint(row.title,"accent")
+   row.state:SetText(plural(r.count,"addon","addons"))
+  elseif r then
+   local n=table.getn(H.Options(r.name));row.addon=r.name
+   row.hubSurface="field";row.hubSelected=H.selected==r.name;paint(row)
+   row.title:SetText(fit(H.DisplayTitle(r),row.title:GetWidth(),12));tint(row.title,"text")
+   row.state:SetText(n>0 and plural(n,"reglage","reglages") or (r.loaded and "Fenetre d'origine" or "Non charge"))
   end
  end
  updateBar(ui.addonBar,table.getn(rows),ui.addonCount,ui.addonOffset)
@@ -341,14 +378,20 @@ function H.RefreshUI()
   local name=i==1 and "Toutes les sections" or cats[ui.categories.offset+i-1]
   b.category=i~=1 and name or nil;show(b,name~=nil);if name then put(b,fit(name,b:GetWidth()-16,12)) end
  end
- local filtered,last={},nil
+ local groups,order={},{}
  for _,o in ipairs(opts) do
   local s=section(o.section);local title=optionLabels[o.label] or o.label or o.id
   if (q~="" or (o.page or "general")==ui.page) and (q~="" or not ui.category or ui.category==s) and (q=="" or string.find(string.lower(title.." "..s.." "..section(o.pageLabel)),q,1,true)) then
    local group=(o.page or "general").."/"..s
-   if q=="" and (table.getn(cats)>1 or H.db.appearance=="compact" or ui.closed[group]) and last~=group then table.insert(filtered,{header=true,section=s,group=group});last=group end
-   if not ui.closed[group] or q~="" then table.insert(filtered,o) end
+   local bucket=groups[group]
+   if not bucket then bucket={section=s,group=group,items={}};groups[group]=bucket;table.insert(order,bucket) end
+   table.insert(bucket.items,o)
   end
+ end
+ local filtered={}
+ for _,bucket in ipairs(order) do
+  if q=="" then table.insert(filtered,{header=true,section=bucket.section,group=bucket.group,count=table.getn(bucket.items)}) end
+  if q~="" or not ui.closed[bucket.group] then for _,o in ipairs(bucket.items) do table.insert(filtered,o) end end
  end
  ui.filteredOptions=filtered;ui.optionOffset=math.max(0,math.min(ui.optionOffset or 0,math.max(0,table.getn(filtered)-ui.optionCount)))
  local hits=0;for _,o in ipairs(filtered) do if not o.header then hits=hits+1 end end
@@ -361,24 +404,30 @@ function H.RefreshUI()
  ui.description:SetText(fit(crumb,ui.description:GetWidth(),11))
  ui.details:SetText(fit(r and addonTitle or "Choisir un addon",ui.details:GetWidth(),16))
  show(ui.empty,table.getn(filtered)==0)
- ui.empty:SetText(q~="" and "Aucun reglage trouve." or (table.getn(opts)==0 and "Utiliser Options d'origine." or "Section vide."))
+ ui.empty:SetText(q~="" and "Aucun reglage trouve." or (table.getn(opts)==0 and "Pas de reglages dans le Hub." or "Section vide."))
  H.refreshing=true
  for i,row in ipairs(ui.options) do
   local o=i<=ui.optionCount and filtered[ui.optionOffset+i] or nil;show(row,o~=nil);row.option=o
   row.toggle:Hide();row.choice:Hide();row.slider:Hide();row.minus:Hide();row.plus:Hide();row.value:SetText("")
   if o and o.header then
-   row.hubSelected=true;place(row.title,row,8,10,ui.labelW,20);row.section:SetText("")
-   row.title:SetText(fit((ui.closed[o.group] and "+  " or "-  ")..o.section,ui.labelW,13));paint(row)
+   local hw=math.max(40,(row:GetWidth() or ui.labelW)-16)
+   local n=o.count or 0
+   row.hubSurface="panel";row.hubSelected=false;paint(row)
+   place(row.title,row,8,2,hw,18);place(row.section,row,8,18,hw,14)
+   row.title:SetText(fit((ui.closed[o.group] and ">  " or "v  ")..o.section,hw,13));tint(row.title,"accent")
+   row.section:SetText(plural(n,"reglage","reglages")..(ui.closed[o.group] and (n>1 and " masques" or " masque") or ""))
   elseif o then
-   row.hubSelected=false;paint(row)
+   local nest=q=="" and 16 or 0
+   local labelW=math.max(40,ui.labelW-nest)
+   row.hubSurface="field";row.hubSelected=false;paint(row)
    local label=optionLabels[o.label] or o.label or o.id
    local detail=""
    if q~="" then local page,sec=section(o.pageLabel),section(o.section);detail=page==sec and page or (page.." > "..sec)
    elseif o.reload then detail="Apres rechargement"
    elseif type(o.tip)=="string" and o.tip~="" and o.tip~=label then detail=o.tip end
-   if detail=="" then place(row.title,row,8,10,ui.labelW,20);row.section:SetText("")
-   else place(row.title,row,8,2,ui.labelW,18);place(row.section,row,8,20,ui.labelW,16);row.section:SetText(fit(detail,ui.labelW,10)) end
-   row.title:SetText(fit(label,ui.labelW,13))
+   if detail=="" then place(row.title,row,8+nest,10,labelW,20);row.section:SetText("")
+   else place(row.title,row,8+nest,2,labelW,18);place(row.section,row,8+nest,20,labelW,16);row.section:SetText(fit(detail,labelW,10)) end
+   row.title:SetText(fit(label,labelW,13));tint(row.title,"text")
    local ok,v=H.Call(o.get)
    if ok and H.Valid(o,v) then
     if o.kind=="check" then put(row.toggle,v and "Active" or "Inactif");row.toggle.hubSelected=v;paint(row.toggle);row.toggle:Show()

@@ -1,5 +1,5 @@
 -- WoW 1.12 / native Lua 5.0. No disk reads, downloaded code, or arbitrary SavedVariables writes.
-AzerothHub={version="0.5.0-test",adapters={},rows={},byName={},page=1,optionPage=1,log={}}
+AzerothHub={version="0.7.0",adapters={},rows={},byName={},page=1,optionPage=1,log={}}
 local H=AzerothHub
 function H.Truth(v) return v==true or v==1 end
 function H.Number(v)
@@ -19,7 +19,33 @@ function H.Metadata(name,key)
  local ok,v=H.Call(GetAddOnMetadata,name,key)
  return ok and type(v)=="string" and v or ""
 end
+local function fillMissing(adapter,entry,key)
+ if type(adapter[key])~="function" and type(entry[key])=="function" then adapter[key]=entry[key] end
+end
+-- Another addon can publish this global before or after the Hub loads.
+-- An integration already written here keeps its own functions.
+function H.AdoptCatalog()
+ local catalog=getglobal("AzerothHubCatalog")
+ if type(catalog)~="table" then return end
+ local function consider(name,entry)
+  if type(name)~="string" or not string.find(name,"^[%w_]+$") or string.len(name)>80 or type(entry)~="table" then return end
+  if not H.adapters[name] then H.adapters[name]={} end
+  local adapter=H.adapters[name]
+  fillMissing(adapter,entry,"open");fillMissing(adapter,entry,"configure")
+  fillMissing(adapter,entry,"available");fillMissing(adapter,entry,"prepare")
+  if type(adapter.options)~="function" then
+   if type(entry.options)=="function" then adapter.options=entry.options
+   elseif type(entry.options)=="table" then local published=entry.options;adapter.options=function() return published end end
+  end
+ end
+ for key,entry in pairs(catalog) do
+  if type(entry)=="table" then
+   if type(key)=="string" then consider(key,entry) elseif type(entry.name)=="string" then consider(entry.name,entry) end
+  end
+ end
+end
 function H.Scan()
+ H.AdoptCatalog()
  local ok,n=H.Call(GetNumAddOns)
  if not ok or not H.Number(n) or n<0 then n=0 end
  local rows,byName,byLower={},{},{}
@@ -44,8 +70,9 @@ function H.Scan()
  -- This installation snapshot is generated outside the game from .toc metadata.
  local function observe(name,title,notes,version)
   if type(name)~="string" or byName[name] then return end
-  local a=H.adapters[name];local success,present=H.Call(a and a.available)
-  local loaded=name=="AzerothHub" or (success and present==true)
+ local a=H.adapters[name];local success,present=H.Call(a and a.available)
+ local native,flag=H.Call(IsAddOnLoaded,name)
+ local loaded=name=="AzerothHub" or (success and present==true) or (native and H.Truth(flag))
   local row={name=name,title=title or name,notes=notes or "",version=version or "",
    enabled=loaded,activationKnown=false,loaded=loaded,loadedKnown=loaded,dependencies={}}
   table.insert(rows,row);byName[name]=row;byLower[string.lower(name)]=row
@@ -53,7 +80,55 @@ function H.Scan()
  if type(AzerothHubInventory)=="table" then
   for _,r in ipairs(AzerothHubInventory) do if type(r)=="table" then observe(r.name,r.title,r.notes,r.version) end end
  end
- for name in pairs(H.adapters) do if H.CanOpen(name) then observe(name) end end
+ -- A folder missing from Inventory.lua can still be found once the client has loaded it.
+ -- Also re-check inventoried names: a player may install one after Hub and /reload.
+ local function live(name)
+  if type(name)~="string" then return end
+  local ok,flag=H.Call(IsAddOnLoaded,name)
+  local loaded=ok and H.Truth(flag)
+  if byName[name] then
+   if loaded then
+    byName[name].loaded=true;byName[name].loadedKnown=true
+    if not byName[name].activationKnown then byName[name].enabled=true end
+    local title,notes,version=H.Metadata(name,"Title"),H.Metadata(name,"Notes"),H.Metadata(name,"Version")
+    if title~="" then byName[name].title=title end
+    if notes~="" then byName[name].notes=notes end
+    if version~="" then byName[name].version=version end
+   end
+   return
+  end
+  if not loaded then return end
+  local title,notes,version=H.Metadata(name,"Title"),H.Metadata(name,"Notes"),H.Metadata(name,"Version")
+  observe(name,title~="" and title or name,notes,version)
+ end
+ if type(AzerothHubInventory)=="table" then
+  for _,r in ipairs(AzerothHubInventory) do if type(r)=="table" and type(r.name)=="string" then live(r.name) end end
+ end
+ local function addonFromFrameName(name)
+  local s=name
+  while type(s)=="string" and string.len(s)>=3 do
+   local ok,flag=H.Call(IsAddOnLoaded,s)
+   if ok and H.Truth(flag) then return s end
+   local shorter=string.gsub(s,"[A-Z][a-z0-9_]*$","")
+   if shorter==s or shorter=="" then s=string.sub(s,1,string.len(s)-1) else s=shorter end
+  end
+ end
+ if Minimap and Minimap.GetChildren then
+  local kids={Minimap:GetChildren()}
+  for _,f in ipairs(kids) do
+   if f.GetName and f.GetObjectType and f:GetObjectType()=="Button" then
+    local found=addonFromFrameName(f:GetName() or "")
+    if found then live(found) end
+   end
+  end
+ end
+ for name,a in pairs(H.adapters) do
+  local listed=H.CanOpen(name)
+  if not listed and type(a.available)=="function" then
+   local ready,present=H.Call(a.available);listed=ready and present==true
+  end
+  if listed then observe(name);live(name) end
+ end
  H.nativeCount=n
  table.sort(rows,function(a,b) return string.lower(a.name)<string.lower(b.name) end)
  H.rows=rows;H.byName=byName;H.byLower=byLower;H.error=nil;return true
@@ -82,6 +157,7 @@ function H.CanOpen(name)
  return H.byName[name] and H.byName[name].loaded==true or false
 end
 function H.Options(name)
+ H.AdoptCatalog()
  local a=H.adapters[name]
  if not a or type(a.options)~="function" then return {} end
  local ok,options=H.Call(a.options)
@@ -138,7 +214,9 @@ function H.Init()
  if H.db then return end
  local raw=type(AzerothHubDB)=="table" and AzerothHubDB or {}
  H.db={schema=1,profiles={},gather=raw.gatherConsent~=3 or raw.gather==true,
-  gatherConsent=3,configProfiles=raw.configProfiles,activeProfile=raw.activeProfile,miniAngle=H.Number(raw.miniAngle) or 225}
+  gatherConsent=3,configProfiles=raw.configProfiles==1 and 1 or nil,
+  activeProfile=type(raw.activeProfile)=="string" and string.len(raw.activeProfile)<=48 and raw.activeProfile or nil,
+  miniAngle=H.Number(raw.miniAngle) or 225}
  H.db.appearance=(raw.appearance=="atelier" or raw.appearance=="compact") and raw.appearance or "grimoire"
  if type(raw.profiles)=="table" then
   local count=0
@@ -357,7 +435,8 @@ local elapsed,collect=0,0
 driver:SetScript("OnUpdate",function()
  if not H.db then return end
  local dt=arg1 or 0;elapsed=elapsed+dt;collect=collect+dt
- if collect>=.15 then
+ -- Minimap child walks are costly with many buttons; one check per second is enough.
+ if collect>=1 then
   collect=0;if H.GatherButtons then H.GatherButtons() end
   if H.db.gather and (not H.launcherEntries or H.launcherDirty) and H.ToggleLauncher then H.ToggleLauncher(true) end
  end

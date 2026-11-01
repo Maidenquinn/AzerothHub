@@ -1,10 +1,14 @@
 *.zip
+*.zip.sha256
 *.log
 *.tmp
 *.bak
 *.wtf
 SavedVariables/
 Logs/
+dist/
+__pycache__/
+*.pyc
 *.exe
 *.dll
 *.mpq

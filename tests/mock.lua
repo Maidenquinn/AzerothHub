@@ -85,6 +85,8 @@ IsAddOnLoaded=function(key) return T.Row(key).loaded and 1 or nil end
 EnableAddOn=function(key) T.writes=T.writes+1;if T.fail==key then error("injected failure") end;T.Row(key).enabled=true end
 DisableAddOn=function(key) T.writes=T.writes+1;if T.fail==key then error("injected failure") end;T.Row(key).enabled=false end
 function T.Load()
- assert(loadfile("Core.lua"))();assert(loadfile("Adapters.lua"))();assert(loadfile("Profiles.lua"))();assert(loadfile("Minimap.lua"))();assert(loadfile("Manager.lua"))();assert(loadfile("UI.lua"))()
+ -- Inventory.lua is optional in unit tests (empty_catalogue / known load it explicitly).
+ assert(loadfile("Core.lua"))();assert(loadfile("Adapters.lua"))();assert(loadfile("AdaptersKnown.lua"))()
+ assert(loadfile("Profiles.lua"))();assert(loadfile("Minimap.lua"))();assert(loadfile("Manager.lua"))();assert(loadfile("UI.lua"))()
  AzerothHub.Init()
 end

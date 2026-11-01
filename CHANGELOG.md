@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.7.0 - 2026-11-01
+
+Première release publique du Hub élargi (catalogue SurvivorsForge / Desktop).
+
+- Azeroth Cursor : schéma Hub complet 1.2 (repère, icône de classe, taille, classe du blason, couleur prédéfinie, langue).
+- Liste Hub en 3 groupes : Avec réglages / Chargés sans schéma / Catalogue (non chargés).
+- Catalogue d’inventaire élargi aux addons Survivors référencés (archives + installation locale), visibles dès le premier lancement même s’ils ne sont pas encore installés.
+- Détection au `/reload` quand un joueur installe plus tard un addon de cette liste.
+- Intégrations sans modifier les sources des autres addons (FieldKit, Azerloot, Stats, Cursor, Survivor UI/Plates, AetherHUD, BigCursor, LocalClock, Max Hit, VCT, Blackwell, Bordo, Keijin, Dragon UI, etc.).
+- Guide auteurs : `docs/INTEGRATION.md` (`AzerothHubCatalog` pour inclusion automatique des réglages).
+- `refresh_inventory.py` accepte `--zips-dir` en plus de `--addons-dir`.
+
+## 0.6.6-test
+
+- Moins de travail par image : le scan des boutons de minimap passe a une fois par seconde, et les boutons deja connus ne sont plus reidentifies a chaque passage.
+
+## 0.6.5-test
+
+- Un addon deja charge, meme absent de l'inventaire, est retrouve via son bouton de minimap.
+- Survivor UI et Survivor Plates exposent leurs modules principaux dans le Hub. Le reste reste dans Options d'origine.
+
+## 0.6.4-test
+
+- L'inventaire inclut les dossiers ajoutes dans le jeu. Un addon present dans cet inventaire et deja charge est marque comme charge.
+- Le lanceur ouvre le bouton de minimap principal quand un addon en a plusieurs.
+
+## 0.6.3-test
+
+- Un addon peut publier ses reglages dans `AzerothHubCatalog`. Le Hub les reprend au chargement, sans modification du Hub.
+- Une integration deja ecrite dans le Hub reste prioritaire.
+
+## 0.6.2-test
+
+- La liste des addons separe ceux qui ont des reglages integres de ceux qui n'en ont pas.
+- Chaque categorie s'affiche comme un titre, avec le nombre de reglages, et les options sont decalees en dessous.
+
 ## 0.6.1-test
 
 Correctif de chargement. La zone de déplacement lisait un champ `points` qui n’existe que dans les tests, ce qui bloquait l’ouverture dans le jeu.

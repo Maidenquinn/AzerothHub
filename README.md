@@ -1,13 +1,13 @@
 # Azeroth Hub
 
-Centre de réglages pour Azeroth Survivors. Un bouton sur la minimap ouvre les autres addons et leurs réglages intégrés, avec des profils réutilisables.
+Centre de réglages pour Azeroth Survivors. Un bouton sur la minimap ouvre les autres addons et leurs réglages intégrés, avec des profils réutilisables. Le catalogue listé suit les addons référencés sur [SurvivorsForge](https://forge.rezondes.net/).
 
-Interface 11200, Lua 5.0. Version **0.6.1-test** : les suites hors jeu passent. Cette version n’est pas annoncée comme stable.
+Interface 11200, Lua 5.0. Version **0.7.0**.
 
 ## Installation
 
 1. Fermer le jeu.
-2. Télécharger `AzerothHub-0.6.1-test.zip` depuis les [releases](https://github.com/Maidenquinn/AzerothHub/releases) — pas l’archive « Source code » générée par GitHub.
+2. Télécharger le ZIP joueur depuis les [releases](https://github.com/Maidenquinn/AzerothHub/releases) — pas l’archive « Source code » générée par GitHub.
 3. Extraire le dossier `AzerothHub` dans `benilla-config/AddOns` du client réellement lancé.
 4. Vérifier que `AddOns/AzerothHub/AzerothHub.toc` existe, sans dossier imbriqué une seconde fois.
 5. Relancer le jeu.
@@ -45,8 +45,42 @@ Le Hub ne devine pas la configuration de tous les addons. Il lit des schémas pu
 - **Azeroth Stats** : barre, verrouillage, sons des records, échelle et opacité.
 - **AZS Spell Meter** et **AZS Elite Tracker** : affichage, verrouillage et annonces par leurs commandes.
 - **Clarity** : actions de session, exclues des profils.
+- **Survivor UI** : modules principaux (suivi, combat, cadres, chat…). La fenêtre complète reste dans **Options d’origine**.
+- **Survivor Plates** : affichage, échelle et filtres de plaques.
 
-Les autres addons apparaissent dans la liste et, quand un raccourci est connu, dans le lanceur. Leurs réglages restent dans leur propre fenêtre.
+Un addon déjà chargé, même absent de `Inventory.lua`, est retrouvé s’il a un bouton sur la minimap dont le nom mène à un addon chargé. Les autres addons apparaissent dans la liste et, quand un raccourci est connu, dans le lanceur. Leurs réglages restent dans leur propre fenêtre tant qu’ils ne publient pas le catalogue ci-dessous, ou qu’aucune intégration n’existe.
+
+### Catalogue pour un addon futur (recommandé)
+
+Guide complet : [docs/INTEGRATION.md](docs/INTEGRATION.md).
+
+Le Hub ne parcourt pas les sauvegardes d’un addon inconnu. L’auteur publie
+`AzerothHubCatalog` depuis son propre code (sans patcher le Hub). Exemple minimal :
+
+```lua
+AzerothHubCatalog = AzerothHubCatalog or {}
+AzerothHubCatalog.MonAddon = {
+ available = function() return type(SlashCmdList)=="table" and type(SlashCmdList.MONADDON)=="function" end,
+ open = function() SlashCmdList.MONADDON("") end,
+ options = function()
+  return {
+   {id="scale", label="Echelle", kind="slider", min=0.5, max=2, step=0.05,
+    section="Affichage", unit="%", displayScale=100,
+    get=function() return MonAddonDB.scale end,
+    set=function(v) MonAddonDB.scale=v; MonAddon_Apply() end},
+  }
+ end,
+}
+```
+
+`kind` : `check`, `slider` ou `choice`. `get` d’une liste renvoie l’**index**.
+`profile = false` exclut des profils. `reload = true` signale un `/reload` sans le
+lancer. Après `/reload`, l’addon apparaît dans **Avec réglages**. Une intégration
+déjà écrite dans le Hub n’est pas écrasée.
+
+Le catalogue d’inventaire livré avec le Hub couvre les addons Survivors courants
+(même pas encore installés). Dès qu’un joueur les installe et recharge, le Hub les
+détecte et active les raccourcis / réglages connus — **sans modifier leurs sources**.
 
 Un profil enregistre les réglages intégrés. Il n’active pas un addon, ne le décharge pas, et ne remplace pas **Options → AddOns**. Changer de profil n’applique pas les anciennes sélections d’activation.
 
@@ -65,12 +99,12 @@ Au premier lancement récent, les boutons d’addons reconnus sont regroupés da
 ## Compatibilité
 
 - Client Azeroth Survivors, Interface 11200, Lua 5.0.
-- `GetNumAddOns` peut renvoyer 0 alors que les addons locaux tournent. `Inventory.lua` sert alors de catalogue. Après un ajout ou un retrait d’addon : `python refresh_inventory.py` dans le dossier du Hub, puis relancer le jeu. Le script ne lit que les `.toc` et n’écrit que cet inventaire.
+- `GetNumAddOns` peut renvoyer 0 alors que les addons locaux tournent. `Inventory.lua` sert alors de catalogue (addons Survivors connus, installés ou non). Un addon de cette liste, installé plus tard, est détecté au `/reload` via `IsAddOnLoaded` / commandes slash / `AzerothHubCatalog`. Pour régénérer l’inventaire côté mainteneur : `python refresh_inventory.py --addons-dir <AddOns> --zips-dir <archives>`. Le script ne lit que les `.toc` / ZIP et n’écrit que cet inventaire.
 - Certaines API WoW récentes sont absentes. `EditBox:HasFocus` n’est pas utilisé.
 
 ## Limites connues
 
-- Tous les réglages de tous les addons ne sont pas importés.
+- Un addon qui ne publie pas `AzerothHubCatalog`, et qui n’a pas d’intégration écrite, reste dans **Sans réglages**.
 - Un réglage qui exige un rechargement est signalé. Le Hub ne recharge pas l’interface.
 - L’aperçu intégré ne concerne que Cursor, et seulement si son API de rendu est présente.
 - Le grand message natif « Bougez pour commencer » peut passer au-dessus des fenêtres. Ce n’est pas corrigé ici.

@@ -1,7 +1,8 @@
 local H=AzerothHub
 H.buttons={}
 local known={AzerothStatsMinimap="AzerothStats",FieldKitMinimapButton="AzerothFieldKit",AzerlootMinimapButton="Azerloot",
- AzerothCursorMinimapButton="AzerothCursor",LuckyOddsMinimapButton="LuckyOdds"}
+ AzerothCursorMinimapButton="AzerothCursor",LuckyOddsMinimapButton="LuckyOdds",SurvivorUIMinimapButton="SurvivorUI",
+ SurvivorUIHistoryButton="SurvivorUI"}
 local excluded={MinimapZoomIn=true,MinimapZoomOut=true,MiniMapTracking=true,MiniMapTrackingFrame=true,
  MiniMapMailFrame=true,MiniMapBattlefieldFrame=true,MiniMapWorldMapButton=true,MiniMapMeetingStoneFrame=true,
  GameTimeFrame=true,AzerothHubMinimapButton=true}
@@ -27,9 +28,11 @@ function H.GatherButtons()
  if not Minimap or not Minimap.GetChildren then return end
  local candidates={Minimap:GetChildren()}
  for _,f in ipairs(candidates) do
-  local addon,name=identity(f)
-  if addon and not H.buttons[f] then
-   H.buttons[f]={frame=f,name=name,addon=addon,alpha=f:GetAlpha()};H.launcherDirty=true
+  if not H.buttons[f] then
+   local addon,name=identity(f)
+   if addon then
+    H.buttons[f]={frame=f,name=name,addon=addon,alpha=f:GetAlpha()};H.launcherDirty=true
+   end
   end
  end
  for f,r in pairs(H.buttons) do

@@ -17,7 +17,17 @@ local function overlaps(a,b)
  return left(a)<right(b) and left(b)<right(a) and -a.points[5]<bottom(b) and -b.points[5]<bottom(a)
 end
 H.selected="AzerothFieldKit";H.RefreshUI()
+local sawSettings,sawPlain=false,false
+for _,row in ipairs(ui.rows) do
+ local text=row:IsShown() and row.title:GetText() or ""
+ if string.find(text,"Avec reglages",1,true) then sawSettings=true end
+ if string.find(text,"Charges sans schema",1,true) or string.find(text,"Catalogue",1,true) or string.find(text,"Sans reglages",1,true) then sawPlain=true end
+end
+assert(sawSettings and sawPlain)
+assert(ui.rows[1].addon==nil and ui.rows[2].addon~=nil)
 assert(ui.tabView:IsShown())
+assert(ui.options[1].option.header and string.find(ui.options[1].section:GetText(),"reglage",1,true))
+assert(ui.options[2].title.points[4]>ui.options[1].title.points[4])
 assert(string.find(ui.description:GetText(),H.profile,1,true))
 assert(string.find(ui.description:GetText(),">",1,true))
 assert(ui.options[1].value:GetWidth()>=64)

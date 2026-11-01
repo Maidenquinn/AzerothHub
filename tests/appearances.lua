@@ -50,11 +50,13 @@ for _,mode in ipairs({"grimoire","atelier","compact","grimoire","compact","ateli
 end
 H.SetAppearance("compact")
 assert(ui.options[1].option.header)
-assert(ui.options[1].section:GetText()=="")
+assert(string.find(ui.options[1].section:GetText(),"reglage",1,true))
+assert(not string.find(ui.options[1].section:GetText() or "","Cliquer",1,true))
 local n=table.getn(ui.filteredOptions);ui.options[1]:Click();assert(table.getn(ui.filteredOptions)==1)
 ui.options[1]:Click();assert(table.getn(ui.filteredOptions)==n)
 ui.manage:Click();assert(ui.addons:IsShown() and not ui.profiles:IsShown())
-ui.rows[1]:Click();assert(not ui.addons:IsShown())
+local picked;for _,row in ipairs(ui.rows) do if row.addon then picked=row;break end end
+assert(picked);picked:Click();assert(not ui.addons:IsShown())
 ui.profile:Click();assert(ui.profiles:IsShown() and ui.shade:IsShown() and not ui.addons:IsShown())
 ui.shade:Click();assert(not ui.profiles:IsShown())
 -- Appearance is a client preference, independent of configuration profiles.
