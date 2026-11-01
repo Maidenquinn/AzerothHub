@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 - 2026-11-01
+
+- Langue aussi dans **Apparence** (plus besoin de chercher Azeroth Hub dans la liste).
+- **Retour au Hub** ferme la fenêtre native ouverte via Options d’origine (FieldKit, Cursor, Azerloot, etc.).
+- Sections gauche (**Avec réglages** / catalogue…) repliables au clic ; état mémorisé.
+- Azeroth Hub en tête de la liste « Avec réglages ».
+
 ## 0.7.1 - 2026-11-01
 
 - Interface Hub traduite dans les **14 langues** du jeu (en, pl, cs, de, pt, es, fr, ro, tr, ru, uk, zh, ja, ko).

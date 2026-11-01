@@ -73,7 +73,7 @@ function H.TF(key,...)
  return s
 end
 function H.LanguageChoices()
- local values={"Automatic"}
+ local values={H.T("Automatic")}
  local codes={"auto"}
  for i=1,table.getn(H.LANGUAGES) do
   table.insert(codes,H.LANGUAGES[i].code)

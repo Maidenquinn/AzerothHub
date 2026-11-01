@@ -123,7 +123,22 @@ local function updatePreview()
  put(p.activate,d.enabled and L("Disable") or L("Enable in game"))
  if p.visual.halo then p.visual.halo:SetAlpha(d.pulse and (.72+.28*math.sin((GetTime and GetTime() or 0)*4)) or 1) end
 end
+function H.CloseNative(name)
+ if type(name)~="string" or name=="" then return end
+ local a=H.adapters[name]
+ if a and type(a.close)=="function" then H.Call(a.close);return end
+ local function hide(f)
+  if type(f)=="table" and f.Hide and (not f.IsShown or f:IsShown()) then f:Hide() end
+ end
+ local root=getglobal(name)
+ if type(root)=="table" then
+  hide(root.frame);hide(root.panel);hide(root.options);hide(root.Options);hide(root.window);hide(root.main)
+ end
+ hide(getglobal(name.."Frame"));hide(getglobal(name.."Options"));hide(getglobal(name.."Panel"))
+ hide(getglobal(name.."MainFrame"));hide(getglobal(name.."Window"))
+end
 function H.PeekInGame()
+ if ui then ui.openedNative=nil end
  H.HideManager();ui.returnBar:Show()
 end
 function H.HideManager()
@@ -188,6 +203,13 @@ function H.SetAppearance(mode)
 end
 function H.ShowAppearance()
  ui.profiles:Hide();ui.categories:Hide();if H.db.appearance=="compact" then ui.addons:Hide() end
+ if ui.langButton then
+  local codes,values=H.LanguageChoices()
+  local cur=H.db and H.db.language or "auto"
+  local caption=values[1]
+  for i,c in ipairs(codes) do if c==cur then caption=values[i];break end end
+  put(ui.langButton,caption)
+ end
  ui.shade:Show();ui.appearance:Show();skin()
 end
 local function showProfiles()
@@ -317,7 +339,7 @@ function H.RefreshUI()
  end
  local shownRails=0;for _,b in ipairs(ui.railProfiles) do if b:IsShown() then shownRails=shownRails+1 end end
  place(ui.railManage,ui.profileRail,8,math.min(ui.profileRail:GetHeight()-42,32+shownRails*38+6),152,30)
- -- Trois groupes : schema Hub, charges sans schema, catalogue non charge (pas encore installes / desactives).
+ -- Trois groupes repliables : schema Hub, charges sans schema, catalogue.
  local ready,openOnly,catalog={},{},{}
  local q=string.lower(ui.search:GetText() or "")
  for _,r in ipairs(H.rows) do
@@ -328,24 +350,29 @@ function H.RefreshUI()
    else table.insert(catalog,r) end
   end
  end
- local rows={}
- local function pushGroup(label,list)
-  if table.getn(list)==0 then return end
-  table.insert(rows,{group=true,label=label,count=table.getn(list)})
-  for _,r in ipairs(list) do table.insert(rows,r) end
+ for i,r in ipairs(ready) do
+  if r.name=="AzerothHub" then table.remove(ready,i);table.insert(ready,1,r);break end
  end
- pushGroup(L("With settings"),ready)
- pushGroup(L("Loaded without Hub schema"),openOnly)
- pushGroup(L("Catalog (not loaded)"),catalog)
+ H.db.foldedGroups=type(H.db.foldedGroups)=="table" and H.db.foldedGroups or {}
+ local rows={}
+ local function pushGroup(key,label,list)
+  if table.getn(list)==0 then return end
+  local folded=H.db.foldedGroups[key]==true
+  table.insert(rows,{group=true,groupKey=key,label=label,count=table.getn(list),folded=folded})
+  if not folded then for _,r in ipairs(list) do table.insert(rows,r) end end
+ end
+ pushGroup("settings",L("With settings"),ready)
+ pushGroup("open",L("Loaded without Hub schema"),openOnly)
+ pushGroup("catalog",L("Catalog (not loaded)"),catalog)
  ui.filteredRows=rows;ui.addonOffset=math.max(0,math.min(ui.addonOffset or 0,math.max(0,table.getn(rows)-ui.addonCount)))
  ui.count:SetText(LF("Addons  %s  |  %s settings",table.getn(H.rows),table.getn(ready)))
  for i,row in ipairs(ui.rows) do
   local r=i<=ui.addonCount and rows[ui.addonOffset+i] or nil
-  show(row,r~=nil);row.addon=nil
+  show(row,r~=nil);row.addon=nil;row.groupKey=nil
   if r and r.group then
-   row.hubSurface="panel";row.hubSelected=false;paint(row)
-   row.title:SetText(fit(r.label,row.title:GetWidth(),12));tint(row.title,"accent")
-   row.state:SetText(plural(r.count,L("addon"),L("addons")))
+   row.groupKey=r.groupKey;row.hubSurface="panel";row.hubSelected=false;paint(row)
+   row.title:SetText(fit((r.folded and ">  " or "v  ")..r.label,row.title:GetWidth(),12));tint(row.title,"accent")
+   row.state:SetText(plural(r.count,L("addon"),L("addons"))..(r.folded and ("  "..L("hidden")) or ""))
   elseif r then
    local n=table.getn(H.Options(r.name));row.addon=r.name
    row.hubSurface="field";row.hubSelected=H.selected==r.name;paint(row)
@@ -512,7 +539,14 @@ local function build()
  for i=1,12 do
   local row=button(ui.addonView,0,0,240,36,"",function() end);row.caption:Hide()
   row.title=label(row,0,0,200,16,"",12);row.state=label(row,0,0,200,14,"",10,"muted")
-  row:SetScript("OnClick",function() if row.addon then selectAddon(row.addon) end end)
+  row:SetScript("OnClick",function()
+   if row.groupKey then
+    H.db.foldedGroups=H.db.foldedGroups or {}
+    H.db.foldedGroups[row.groupKey]=not H.db.foldedGroups[row.groupKey]
+    ui.addonOffset=0;H.RefreshUI();return
+   end
+   if row.addon then selectAddon(row.addon) end
+  end)
   wheel(row,function(d) move("addons",-d) end);ui.rows[i]=row
  end
  wheel(ui.addonView,function(d) move("addons",-d) end);wheel(ui.addons,function(d) move("addons",-d) end)
@@ -522,10 +556,11 @@ local function build()
  ui.pages=label(ui.addons,0,0,160,24,"",10,"muted");ui.pages:SetJustifyH("CENTER")
  ui.details=label(ui,0,0,400,24,"",16,"heading");ui.description=label(ui,0,0,650,16,"",11,"muted")
  ui.original=button(ui,0,0,200,28,L("Original options"),function()
-  if not H.selected then return end;local a=H.adapters[H.selected];H.HideManager()
+  if not H.selected then return end;local a=H.adapters[H.selected];local target=H.selected
+  H.HideManager()
   local ok,err
-  if a and a.configure then ok,err=H.Call(a.configure) else ok,err=H.Open(H.selected) end
-  if ok then ui.returnBar:Show() else H.Say(err or L("Options unavailable")) end
+  if a and a.configure then ok,err=H.Call(a.configure) else ok,err=H.Open(target) end
+  if ok then ui.openedNative=target;ui.returnBar:Show() else H.Say(err or L("Options unavailable")) end
  end)
  ui.peek=button(ui,0,0,118,28,L("View in game"),H.PeekInGame)
  ui.tabView=CreateFrame("Frame",nil,ui);ui.tabs={}
@@ -595,9 +630,12 @@ local function build()
  ui.returnBar:SetPoint("TOP",UIParent,"TOP",0,-75);ui.returnBar:SetFrameStrata("DIALOG")
  if ui.returnBar.SetFrameLevel then ui.returnBar:SetFrameLevel(200) end;surface(ui.returnBar,"panel")
  ui.returnButton=button(ui.returnBar,8,7,296,28,L("Back to Hub"),function()
+  H.CloseNative(ui.openedNative);ui.openedNative=nil
   H.CaptureConfig(H.profile);ui.returnBar:Hide();if not ui:IsShown() then H.ToggleUI() end
  end)
- button(ui.returnBar,312,7,28,28,"X",function() ui.returnBar:Hide() end);ui.returnBar:Hide()
+ button(ui.returnBar,312,7,28,28,"X",function()
+  H.CloseNative(ui.openedNative);ui.openedNative=nil;ui.returnBar:Hide()
+ end);ui.returnBar:Hide()
  ui.categories=CreateFrame("Frame",nil,ui);surface(ui.categories,"panel");ui.categories:SetFrameStrata("FULLSCREEN_DIALOG");ui.categories:EnableMouse(true);ui.categoryRows={}
  for i=1,8 do local b=button(ui.categories,8,8+(i-1)*34,304,30,"",function() end);b:SetScript("OnClick",function() ui.category=b.category;ui.optionOffset=0;ui.categories:Hide();H.RefreshUI() end);ui.categoryRows[i]=b end
  wheel(ui.categories,function(d) ui.categories.offset=math.max(0,(ui.categories.offset or 0)-d);H.RefreshUI() end);ui.categories:Hide()
@@ -619,13 +657,34 @@ local function build()
   if ok then H.SelectProfile(name);H.db.activeProfile=name;ui.profiles:Hide();ui.shade:Hide() end;result(ok,err)
  end)
  ui.apply=button(ui.profiles,20,424,450,28,L("Reapply saved settings"),function() result(H.UseConfigProfile(H.profile)) end)
- ui.appearance=makeDialog("AzerothHubAppearance",510,370,L("Hub appearance"));ui.styleChoices={}
+ ui.appearance=makeDialog("AzerothHubAppearance",510,470,L("Hub appearance"));ui.styleChoices={}
  ui.appearanceHelp=label(ui.appearance,20,52,470,36,L("This choice is saved here. Changing profile does not change appearance."),11,"muted")
  local descriptions={grimoire=L("Grimoire: addons on the left, settings on the right"),atelier=L("Workshop: profiles stay in a column"),compact=L("Compact: short window, addon in the header")}
  for i,mode in ipairs({"grimoire","atelier","compact"}) do
   local key=mode;ui.styleChoices[key]=button(ui.appearance,20,100+(i-1)*76,470,62,descriptions[key],function() result(H.SetAppearance(key)) end)
  end
- ui.closed={};ui.addonOffset=0;ui.optionOffset=0;ui.ready=true
+ ui.langTitle=label(ui.appearance,20,340,470,20,L("Interface language"),12,"accent")
+ local function langCaption()
+  local codes,values=H.LanguageChoices()
+  local cur=H.db and H.db.language or "auto"
+  for i,c in ipairs(codes) do if c==cur then return values[i] end end
+  return values[1]
+ end
+ ui.langButton=button(ui.appearance,20,368,470,40,"",function()
+  local codes=H.LanguageChoices()
+  local cur=H.db.language or "auto"
+  local idx=1
+  for i,c in ipairs(codes) do if c==cur then idx=i;break end end
+  idx=math.mod(idx,table.getn(codes))+1
+  H.db.language=codes[idx]
+  if H.ApplyLocale then H.ApplyLocale() end
+  put(ui.langButton,langCaption())
+  H.needsReload=true
+  H.RefreshUI()
+ end)
+ put(ui.langButton,langCaption())
+ ui.langHint=label(ui.appearance,20,416,470,36,L("Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."),10,"muted")
+ ui.closed={};ui.addonOffset=0;ui.optionOffset=0;ui.ready=true;ui.openedNative=nil
  ui:SetScript("OnHide",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide() end)
  H.selected=H.selected or (H.byName.AzerothFieldKit and "AzerothFieldKit") or (H.rows[1] and H.rows[1].name)
  H.LayoutManager();H.RefreshUI()

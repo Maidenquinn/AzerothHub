@@ -2,7 +2,7 @@ dofile("tests/mock.lua")
 dofile("Inventory.lua")
 T.Load()
 local H=AzerothHub
-assert(H.version=="0.7.1")
+assert(H.version=="0.7.2")
 assert(H.adapters.BigCursor and H.adapters.AetherHUD and H.adapters.VulchansCombatText)
 assert(H.adapters.BlackwellUI and H.adapters.KeijinUI and H.adapters.MoveAnything)
 -- Inventory lists community addons even when not loaded.

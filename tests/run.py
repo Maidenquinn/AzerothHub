@@ -7,7 +7,7 @@ if not lua.exists():
 for path in list(root.glob('*.lua'))+list((root/'Locales').glob('*.lua')):
     rel=path.relative_to(root).as_posix()
     subprocess.run([str(lua),'-e',f'assert(loadfile("{rel}"))'],cwd=root,check=True)
-for case in ('core','minimap','ui','presets','compatibility','empty_catalogue','config_profiles','appearances','layout','catalog','known','cursor_schema','locale'):
+for case in ('core','minimap','ui','presets','compatibility','empty_catalogue','config_profiles','appearances','layout','catalog','known','cursor_schema','locale','groups_close'):
     subprocess.run([str(lua),f'tests/{case}.lua'],cwd=root,check=True)
 addons=Path(os.environ.get('AZHUB_ADDONS', r'H:/Users/kevin/Desktop/AzerothSurvivors/Jeu/benilla-config/AddOns'))
 native=addons/'Azerloot/modules/Settings.lua'

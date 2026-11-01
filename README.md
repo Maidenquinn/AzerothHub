@@ -2,7 +2,7 @@
 
 Centre de réglages pour Azeroth Survivors. Un bouton sur la minimap ouvre les autres addons et leurs réglages intégrés, avec des profils réutilisables. Le catalogue listé suit les addons référencés sur [SurvivorsForge](https://forge.rezondes.net/).
 
-Interface 11200, Lua 5.0. Version **0.7.1**. UI in the game’s **14 languages** (follows `azsLanguage`, overridable in Hub → Azeroth Hub → Language).
+Interface 11200, Lua 5.0. Version **0.7.2**. UI in the game’s **14 languages** (follows `azsLanguage`; change under **Apparence** or Hub → Azeroth Hub → Language, then `/reload`).
 
 ## Installation
 

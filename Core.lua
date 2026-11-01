@@ -2,7 +2,7 @@
 -- Keep any fields already registered by Locale.lua (LOCALES / RegisterLocale).
 AzerothHub=AzerothHub or {}
 local H=AzerothHub
-H.version="0.7.1"
+H.version="0.7.2"
 H.adapters=H.adapters or {}
 H.rows=H.rows or {}
 H.byName=H.byName or {}
@@ -229,6 +229,7 @@ function H.Init()
   miniAngle=H.Number(raw.miniAngle) or 225}
  H.db.appearance=(raw.appearance=="atelier" or raw.appearance=="compact") and raw.appearance or "grimoire"
  H.db.language=(type(raw.language)=="string" and (raw.language=="auto" or (H.IsKnownLanguage and H.IsKnownLanguage(raw.language))) and raw.language) or "auto"
+ H.db.foldedGroups=type(raw.foldedGroups)=="table" and raw.foldedGroups or {}
  if H.ApplyLocale then H.ApplyLocale() end
  if type(raw.profiles)=="table" then
   local count=0

@@ -197,6 +197,28 @@ H.adapters.AzerothFieldKit.prepare=function()
   if FieldKitUI.frame then FieldKitUI.frame:Hide() end
  end
 end
+H.adapters.AzerothFieldKit.close=function()
+ if type(FieldKitUI)=="table" and FieldKitUI.frame then FieldKitUI.frame:Hide() end
+end
+H.adapters.AzerothCursor.close=function()
+ local a=getglobal("AzerothCursor")
+ if type(a)=="table" then
+  if a.panel then a.panel:Hide() end
+  if a.picker then a.picker:Hide() end
+ end
+end
+H.adapters.Azerloot.close=function()
+ local f=getglobal("AzerlootFrame") or getglobal("AzerlootMain") or getglobal("AzerlootWindow")
+ if f and f.Hide then f:Hide()
+ elseif type(Azerloot_Toggle)=="function" then
+  -- Prefer hide-known frames; toggle only if a main frame is visibly open.
+  local shown
+  for _,name in ipairs({"AzerlootFrame","AzerlootMain","AzerlootWindow","AzerlootBook"}) do
+   local w=getglobal(name);if w and w.IsShown and w:IsShown() then shown=w;break end
+  end
+  if shown then shown:Hide() end
+ end
+end
 
 local function field(db,path,label,kind,default,low,high,step,apply,values)
  return {id=path,label=label,kind=kind,min=low,max=high,step=step,values=values,
