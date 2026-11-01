@@ -1,26 +1,46 @@
-# Discord message — Azeroth Hub 0.7.2
+# Discord message — Azeroth Hub 0.7.4 (first announcement)
 
 ```md
-**Azeroth Hub 0.7.2** is out (fixes on top of 0.7.1).
+**Azeroth Hub 0.7.4** is out
 
-Central launcher and settings hub for Azeroth Survivors: one place to open your addons and tweak what they expose.
+Azeroth Hub is the **central launcher and settings hub** for Azeroth Survivors. One place to open your addons, tweak what they expose, and switch between saved setups — without digging through a dozen separate panels.
 
-**What it does**
-- Multiple **profiles** — create, copy, switch anytime.
-- One **unified UI** for integrated settings + **Original options** for each addon’s own panel.
-- **Dynamic** profiles; newly installed addons appear after `/reload`.
-- Full [SurvivorsForge](https://forge.rezondes.net/) catalog supported (list + launch; Hub settings where integrated).
-- **14 languages** — follows the game language; change under **Appearance** (or Azeroth Hub → Language), then `/reload`.
-
-**0.7.2 fixes**
-- Language control is in **Appearance** (easy to find).
-- **Back to Hub** closes the native addon window opened via Original options.
-- Left list sections (**With settings**, catalog…) are **collapsible**.
-- Proper French accents and Hub listed first under With settings.
+**What you get**
+- **Multiple profiles** (solo, coop, light, custom…): create, copy, switch anytime; reapply saved settings in one click
+- **One UI** for integrated Hub settings (checks / sliders / lists) + **Original options** to open each addon’s own window
+- **Dynamic**: newly installed addons show up after `/reload`; left list sections (With settings / catalog) are collapsible
+- **SurvivorsForge catalog**: addons listed on https://forge.rezondes.net/ are visible in the Hub (launch + native options; deeper Hub controls where integrated)
+- **14 game languages** — follows the game language; change anytime via the language dropdown next to **Appearance**
 
 **Download**
-https://github.com/Maidenquinn/AzerothHub/releases/tag/v0.7.2  
-Use **AzerothHub-0.7.2.zip** (not Source code) → extract into `AddOns` → relaunch → `/azhub`.
+https://github.com/Maidenquinn/AzerothHub/releases/tag/v0.7.4  
+Take **AzerothHub-0.7.4.zip** (not “Source code”) → extract the `AzerothHub` folder into `AddOns` → relaunch → `/azhub` or click the gear on the minimap.
 
-**Authors:** publish `AzerothHubCatalog` — https://github.com/Maidenquinn/AzerothHub/blob/main/docs/INTEGRATION.md
+---
+
+**Currently supported**
+
+*Hub settings (edit inside Hub + profiles)*  
+Azeroth Hub · Azeroth FieldKit · Azerloot · Azeroth Cursor · Azeroth Stats · ASBuilder · AZS Spell Meter · AZS Elite Tracker · AZS Max Hit · Survivor UI · Survivor Plates · AetherHUD · BigCursor · LocalClock · Vulchan’s Combat Text · Azeroth Clarity
+
+*Listed / openable (native window or minimap; Hub settings if the author publishes a catalog)*  
+BlackwellUI · BordoUI · KeijinUI · SurvivorsDragonUi · SurvivorUI Classic · MoveAnything / MoveUI · LuckyOdds · ASTinyPlates · and the rest of the SurvivorsForge / Desktop catalog (Azeroth Challenges, Collector, Death Recap, Pilot Bridge, etc.)
+
+If an addon is on Forge but not installed yet, it still appears under **Catalog** until you install it.
+
+---
+
+**Addon authors — automatic Hub support (no Hub patch required)**
+
+Publish `AzerothHubCatalog` from your own addon:
+
+1. **Key** = exact addon folder name (same as the `.toc`)
+2. **`available`** / **`open`** (and **`configure`** if you have a separate options panel)
+3. **`options`** with stable descriptors: `id`, `kind` (`check` / `slider` / `choice`), safe `get` / `set` — prefer **English labels** (Hub translates them)
+4. **`profile = false`** for session-only / destructive controls; **`reload = true`** if a `/reload` is needed (Hub never forces it)
+
+After `/reload`, your addon appears under **With settings**.
+
+Full guide + example:  
+https://github.com/Maidenquinn/AzerothHub/blob/main/docs/INTEGRATION.md
 ```
