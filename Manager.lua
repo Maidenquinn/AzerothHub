@@ -241,18 +241,20 @@ local function showLangMenu()
  local cur=H.db.language or "auto"
  local n=table.getn(codes)
  local rowH=28
- ui.langMenu:SetHeight(12+n*rowH)
+ local menuW=240
+ local menuX=math.max(8,ui:GetWidth()-40-28-8-108-8-menuW)
+ -- Size the menu first; fitting labels against a 0-width parent produced broken UTF-8 glyphs.
+ place(ui.langMenu,ui,menuX,42,menuW,12+n*rowH)
+ local inner=menuW-16
  for i,b in ipairs(ui.langRows) do
   local code,label=codes[i],values[i]
   show(b,code~=nil);b.lang=code
   if code then
-   place(b,ui.langMenu,8,8+(i-1)*rowH,ui.langMenu:GetWidth()-16,rowH-4)
-   put(b,fit(label,b:GetWidth()-16,12));b.hubSelected=code==cur;paint(b)
+   place(b,ui.langMenu,8,8+(i-1)*rowH,inner,rowH-4)
+   -- Language names are short: never byte-truncate (breaks UTF-8 → empty boxes).
+   put(b,tostring(label or code));b.hubSelected=code==cur;paint(b)
   end
  end
- local menuW=220
- local menuX=math.max(8,ui:GetWidth()-40-28-8-108-8-menuW)
- place(ui.langMenu,ui,menuX,42,menuW,12+n*rowH)
  ui.langMenu:Show()
 end
 local function placeBody()

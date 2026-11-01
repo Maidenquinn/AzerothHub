@@ -2,7 +2,7 @@
 -- Keep any fields already registered by Locale.lua (LOCALES / RegisterLocale).
 AzerothHub=AzerothHub or {}
 local H=AzerothHub
-H.version="0.7.3"
+H.version="0.7.4"
 H.adapters=H.adapters or {}
 H.rows=H.rows or {}
 H.byName=H.byName or {}

@@ -36,6 +36,13 @@ assert(ui.langMenu:IsShown())
 local langs=0
 for _,b in ipairs(ui.langRows) do if b:IsShown() and b.lang then langs=langs+1 end end
 assert(langs==15)
+-- Labels must be real language names, not truncated UTF-8 garbage.
+local en
+for _,b in ipairs(ui.langRows) do if b.lang=="en" then en=b;break end end
+assert(en and en.caption:GetText()=="English")
+local pt
+for _,b in ipairs(ui.langRows) do if b.lang=="pt" then pt=b;break end end
+assert(pt and string.find(pt.caption:GetText(),"Portug",1,true))
 local fr
 for _,b in ipairs(ui.langRows) do if b.lang=="fr" then fr=b;break end end
 assert(fr);fr:Click()

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4 - 2026-11-01
+
+- Fix menu langue : les noms s’affichaient en carrés (troncature UTF-8 avant sizing du menu).
+
 ## 0.7.3 - 2026-11-01
 
 - Sélecteur de **langue** visible en haut à côté d’Apparence, menu déroulant avec les 14 langues + Automatic.
