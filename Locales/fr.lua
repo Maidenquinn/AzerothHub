@@ -80,6 +80,8 @@ AzerothHub.RegisterLocale("fr", {
  ["Some settings are waiting for a reload."] = "Certains réglages attendent un rechargement.",
  ["This name already exists. Choose a new name."] = "Ce nom existe déjà. Choisissez un nouveau nom.",
  ["Automatic"] = "Automatique",
+ ["Current"] = "Actuel",
+ ["Light"] = "Léger",
  ["Language"] = "Langue",
  ["Interface language"] = "Langue de l'interface",
  ["Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."] = "Suit la langue du jeu ou force l'une des 14 langues prises en charge. Nécessite /reload pour reconstruire la fenêtre du Hub.",

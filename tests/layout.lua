@@ -28,7 +28,7 @@ assert(ui.rows[1].addon==nil and ui.rows[2].addon~=nil)
 assert(ui.tabView:IsShown())
 assert(ui.options[1].option.header and string.find(ui.options[1].section:GetText(),"setting",1,true))
 assert(ui.options[2].title.points[4]>ui.options[1].title.points[4])
-assert(string.find(ui.description:GetText(),H.profile,1,true))
+assert(string.find(ui.description:GetText(),"Current",1,true) or string.find(ui.description:GetText(),H.profile,1,true))
 assert(string.find(ui.description:GetText(),">",1,true))
 assert(ui.options[1].value:GetWidth()>=64)
 local tip

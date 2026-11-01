@@ -80,6 +80,8 @@ AzerothHub.RegisterLocale("ko", {
  ["Some settings are waiting for a reload."] = "일부 설정이 다시 불러오기를 기다리고 있습니다.",
  ["This name already exists. Choose a new name."] = "이미 존재하는 이름입니다. 다른 이름을 선택하세요.",
  ["Automatic"] = "자동",
+ ["Current"] = "현재",
+ ["Light"] = "라이트",
  ["Language"] = "언어",
  ["Interface language"] = "인터페이스 언어",
  ["Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."] = "게임 언어를 따르거나 지원되는 14개 언어 중 하나를 강제로 사용합니다. Hub 창을 다시 구성하려면 /reload 가 필요합니다.",

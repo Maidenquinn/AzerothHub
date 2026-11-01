@@ -80,6 +80,8 @@ AzerothHub.RegisterLocale("uk", {
  ["Some settings are waiting for a reload."] = "Деякі параметри очікують перезавантаження.",
  ["This name already exists. Choose a new name."] = "Така назва вже існує. Оберіть нову назву.",
  ["Automatic"] = "Автоматично",
+ ["Current"] = "Поточний",
+ ["Light"] = "Легкий",
  ["Language"] = "Мова",
  ["Interface language"] = "Мова інтерфейсу",
  ["Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."] = "Використовує мову гри або примусово одну з 14 підтримуваних мов. Для перебудови вікна Hub потрібен /reload.",

@@ -49,14 +49,22 @@ local function button(parent,x,y,w,h,text,fn)
  b:SetScript("OnLeave",function() paint(b) end)
  table.insert(buttons,b);return b
 end
-local function edit(parent,x,y,w,callback,hint)
+local function edit(parent,x,y,w,callback,hintKey)
  local f=CreateFrame("EditBox",nil,parent);place(f,parent,x,y,w,28);surface(f,"field")
  f:SetFont("Fonts\\FRIZQT__.TTF",12);f:SetAutoFocus(false);f:SetMaxLetters(64)
  if f.SetTextInsets then f:SetTextInsets(8,8,0,0) end
  f:SetScript("OnEscapePressed",function() f:ClearFocus() end)
- if hint then f.placeholder=label(f,8,0,w-16,28,hint,11,"muted") end
+ if hintKey then
+  f.hintKey=hintKey
+  f.placeholder=label(f,8,0,w-16,28,L(hintKey),11,"muted")
+ end
  if callback then f:SetScript("OnTextChanged",function() if ui and ui.ready then callback() end end) end
  return f
+end
+local PROFILE_DISPLAY={Actuel="Current",Leger="Light",Solo="Solo",Coop="Coop"}
+local function profileLabel(name)
+ local key=PROFILE_DISPLAY[name]
+ return key and L(key) or tostring(name or "")
 end
 local function skin()
  local t=theme()
@@ -221,17 +229,43 @@ local function categoryMenu()
  ui.categories.offset=ui.categories.offset or 0
  show(ui.categories,not ui.categories:IsShown());H.RefreshUI()
 end
+local function setPlaceholder(f)
+ if f and f.placeholder and f.hintKey then f.placeholder:SetText(L(f.hintKey)) end
+end
+local function localizeChrome()
+ if not ui then return end
+ put(ui.styleButton,L("Appearance"))
+ if ui.langHeader then put(ui.langHeader,fit(langCaption().."  v",math.max(40,ui.langHeader:GetWidth()-16),12)) end
+ put(ui.original,L("Original options"));put(ui.peek,L("View in game"))
+ put(ui.returnButton,L("Back to Hub"));put(ui.categoryButton,L("Categories"))
+ put(ui.railManage,L("Manage profiles"))
+ if ui.profileRailTitle then ui.profileRailTitle:SetText(L("Profiles")) end
+ if ui.cursorPreviewTitle then ui.cursorPreviewTitle:SetText(L("Cursor preview")) end
+ setPlaceholder(ui.search);setPlaceholder(ui.optionSearch);setPlaceholder(ui.nameEdit)
+ if ui.profiles and ui.profiles.titleLabel then ui.profiles.titleLabel:SetText(L("Your profiles")) end
+ if ui.appearance and ui.appearance.titleLabel then ui.appearance.titleLabel:SetText(L("Hub appearance")) end
+ if ui.profilesHelp then ui.profilesHelp:SetText(L("This profile stores integrated addon settings.\nCollections, history and activation are not copied.")) end
+ if ui.profilesNew then ui.profilesNew:SetText(L("New profile from current settings")) end
+ put(ui.createProfile,L("Copy this profile"));put(ui.apply,L("Reapply saved settings"))
+ if ui.appearanceHelp then ui.appearanceHelp:SetText(L("This choice is saved here. Changing profile does not change appearance.")) end
+ local descriptions={
+  grimoire=L("Grimoire: addons on the left, settings on the right"),
+  atelier=L("Workshop: profiles stay in a column"),
+  compact=L("Compact: short window, addon in the header"),
+ }
+ if ui.styleChoices then
+  for mode,b in pairs(ui.styleChoices) do if descriptions[mode] then put(b,descriptions[mode]) end end
+ end
+ if H.launcher then
+  -- Launcher is rebuilt on open; captions refreshed there.
+ end
+end
 local function setLanguage(code)
  if code~="auto" and not (H.IsKnownLanguage and H.IsKnownLanguage(code)) then return end
  H.db.language=code
  if H.ApplyLocale then H.ApplyLocale() end
  if ui.langMenu then ui.langMenu:Hide() end
- put(ui.langHeader,fit(langCaption().."  v",ui.langHeader:GetWidth()-16,12))
- put(ui.styleButton,L("Appearance"))
- put(ui.profile,L("Profile"));put(ui.manage,L("Addon"))
- put(ui.original,L("Original options"));put(ui.peek,L("View in game"))
- put(ui.returnButton,L("Back to Hub"))
- H.needsReload=true
+ localizeChrome()
  H.RefreshUI()
 end
 local function showLangMenu()
@@ -372,20 +406,24 @@ function H.RefreshUI()
  if ui.previewFor~=H.selected then H.LayoutManager() end
  if not H.draft then H.SelectProfile(H.profile) end
  ui.rendering=true
+ localizeChrome()
  for _,f in ipairs({ui.search,ui.optionSearch,ui.nameEdit}) do if f.placeholder then show(f.placeholder,(f:GetText() or "")=="") end end
  local addonTitle=H.byName[H.selected or ""] and H.DisplayTitle(H.byName[H.selected]) or L("Choose")
- put(ui.profile,fit(LF("Profile: %s",H.profile),ui.profile:GetWidth()-16,12))
+ put(ui.profile,fit(LF("Profile: %s",profileLabel(H.profile)),ui.profile:GetWidth()-16,12))
  put(ui.manage,fit(LF("Addon: %s",addonTitle),ui.manage:GetWidth()-16,12))
  ui.manage:SetScript("OnClick",function() if H.db.appearance=="compact" then show(ui.addons,not ui.addons:IsShown()) else showProfiles() end end)
  if ui.nameProfile~=H.profile then ui.nameProfile=H.profile;ui.nameEdit:SetText("") end
  local ns=names();ui.profileOffset=math.max(0,math.min(ui.profileOffset or 0,math.max(0,table.getn(ns)-6)))
  for i,b in ipairs(ui.profileRows) do
   local name=ns[ui.profileOffset+i];show(b,name~=nil);b.profile=name
-  if name then b.hubSelected=name==H.profile;put(b,fit(name..(name==H.profile and (" "..L("- active")) or ""),b:GetWidth()-16,12));paint(b) end
+  if name then
+   local label=profileLabel(name)..(name==H.profile and (" "..L("- active")) or "")
+   b.hubSelected=name==H.profile;put(b,fit(label,b:GetWidth()-16,12));paint(b)
+  end
  end
  for i,b in ipairs(ui.railProfiles) do
   local name=ns[i];show(b,name~=nil);b.profile=name
-  if name then b.hubSelected=name==H.profile;put(b,fit(name,b:GetWidth()-16,12));paint(b) end
+  if name then b.hubSelected=name==H.profile;put(b,fit(profileLabel(name),b:GetWidth()-16,12));paint(b) end
  end
  local shownRails=0;for _,b in ipairs(ui.railProfiles) do if b:IsShown() then shownRails=shownRails+1 end end
  place(ui.railManage,ui.profileRail,8,math.min(ui.profileRail:GetHeight()-42,32+shownRails*38+6),152,30)
@@ -478,9 +516,9 @@ function H.RefreshUI()
  local crumb
  if not r then crumb=L("Choose an addon")
  elseif q~="" then crumb=hits.." "..(hits>1 and L("results") or L("result")).."  >  "..L("all tabs")
- elseif table.getn(opts)==0 then crumb=H.profile.."  >  "..addonTitle.."  >  "..L("original options")
- elseif table.getn(pages)<=1 then crumb=H.profile.."  >  "..addonTitle
- else crumb=H.profile.."  >  "..addonTitle.."  >  "..pageLabel end
+ elseif table.getn(opts)==0 then crumb=profileLabel(H.profile).."  >  "..addonTitle.."  >  "..L("original options")
+ elseif table.getn(pages)<=1 then crumb=profileLabel(H.profile).."  >  "..addonTitle
+ else crumb=profileLabel(H.profile).."  >  "..addonTitle.."  >  "..pageLabel end
  ui.description:SetText(fit(crumb,ui.description:GetWidth(),11))
  ui.details:SetText(fit(r and addonTitle or L("Choose an addon"),ui.details:GetWidth(),16))
  show(ui.empty,table.getn(filtered)==0)
@@ -533,10 +571,12 @@ function H.RefreshUI()
  for mode,b in pairs(ui.styleChoices) do b.hubSelected=H.db.appearance==mode;paint(b) end
  ui.rendering=nil
 end
-local function makeDialog(name,w,h,title)
+local function makeDialog(name,w,h,titleKey)
  local f=CreateFrame("Frame",name,ui);f:SetWidth(w);f:SetHeight(h);f:SetPoint("CENTER",ui,"CENTER",0,0)
  f:SetFrameStrata("FULLSCREEN_DIALOG");if f.SetFrameLevel then f:SetFrameLevel(100) end;f:EnableMouse(true);surface(f,"panel")
- label(f,20,18,w-65,28,title,20,"heading");button(f,w-44,18,26,26,"X",function() f:Hide();ui.shade:Hide() end)
+ f.titleKey=titleKey
+ f.titleLabel=label(f,20,18,w-65,28,L(titleKey),20,"heading")
+ button(f,w-44,18,26,26,"X",function() f:Hide();ui.shade:Hide() end)
  f:Hide();return f
 end
 local function nudge(row,dir)
@@ -585,7 +625,7 @@ local function build()
  ui.railProfiles={};for i=1,8 do local b=button(ui.profileRail,0,0,148,36,"",function() end);b:SetScript("OnClick",function() if b.profile then result(H.UseConfigProfile(b.profile)) end end);ui.railProfiles[i]=b end
  ui.railManage=button(ui.profileRail,0,0,148,30,L("Manage profiles"),showProfiles)
  ui.addons=CreateFrame("Frame",nil,ui);surface(ui.addons,"panel");ui.count=label(ui.addons,12,10,220,22,L("ADDONS"),11,"accent")
- ui.search=edit(ui.addons,0,0,200,function() ui.addonOffset=0;H.RefreshUI() end,L("Search for an addon..."))
+ ui.search=edit(ui.addons,0,0,200,function() ui.addonOffset=0;H.RefreshUI() end,"Search for an addon...")
  ui.addonView=CreateFrame("Frame",nil,ui.addons);ui.rows={}
  for i=1,12 do
   local row=button(ui.addonView,0,0,240,36,"",function() end);row.caption:Hide()
@@ -625,7 +665,7 @@ local function build()
   wheel(b,function(d) shiftTabs(-d) end);ui.tabs[i]=b
  end
  ui.categoryButton=button(ui,0,0,210,28,L("Categories"),categoryMenu)
- ui.optionSearch=edit(ui,0,0,420,function() ui.optionOffset=0;H.RefreshUI() end,L("Search for a setting..."))
+ ui.optionSearch=edit(ui,0,0,420,function() ui.optionOffset=0;H.RefreshUI() end,"Search for a setting...")
  ui.optionView=CreateFrame("Frame",nil,ui);wheel(ui.optionView,function(d) move("options",-d) end)
  ui.options={}
  for i=1,12 do
@@ -702,12 +742,12 @@ local function build()
  end
  ui.langMenu:Hide()
  ui.shade:SetScript("OnClick",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.langMenu:Hide();ui.shade:Hide() end)
- ui.profiles=makeDialog("AzerothHubProfileMenu",490,470,L("Your profiles"));ui.profileRows={};ui.profiles.rows=ui.profileRows
+ ui.profiles=makeDialog("AzerothHubProfileMenu",490,470,"Your profiles");ui.profileRows={};ui.profiles.rows=ui.profileRows
  ui.profilesHelp=label(ui.profiles,20,50,450,40,L("This profile stores integrated addon settings.\nCollections, history and activation are not copied."),11,"muted")
  for i=1,6 do local b=button(ui.profiles,20,96+(i-1)*40,450,34,"",function() end);b:SetScript("OnClick",function() if b.profile then ui.profiles:Hide();ui.shade:Hide();result(H.UseConfigProfile(b.profile)) end end);wheel(b,function(d) ui.profileOffset=ui.profileOffset-d;H.RefreshUI() end);ui.profileRows[i]=b end
  wheel(ui.profiles,function(d) ui.profileOffset=ui.profileOffset-d;H.RefreshUI() end)
  ui.profilesNew=label(ui.profiles,20,344,450,22,L("New profile from current settings"),12,"accent")
- ui.nameEdit=edit(ui.profiles,20,374,270,function() if ui.nameEdit.placeholder then show(ui.nameEdit.placeholder,(ui.nameEdit:GetText() or "")=="") end end,L("Name of the new profile..."))
+ ui.nameEdit=edit(ui.profiles,20,374,270,function() if ui.nameEdit.placeholder then show(ui.nameEdit.placeholder,(ui.nameEdit:GetText() or "")=="") end end,"Name of the new profile...")
  ui.nameEdit:SetMaxLetters(48)
  ui.createProfile=button(ui.profiles,302,374,168,28,L("Copy this profile"),function()
   local name=string.gsub(string.gsub(ui.nameEdit:GetText() or "","^%s+",""),"%s+$","")
@@ -716,7 +756,7 @@ local function build()
   if ok then H.SelectProfile(name);H.db.activeProfile=name;ui.profiles:Hide();ui.shade:Hide() end;result(ok,err)
  end)
  ui.apply=button(ui.profiles,20,424,450,28,L("Reapply saved settings"),function() result(H.UseConfigProfile(H.profile)) end)
- ui.appearance=makeDialog("AzerothHubAppearance",510,370,L("Hub appearance"));ui.styleChoices={}
+ ui.appearance=makeDialog("AzerothHubAppearance",510,370,"Hub appearance");ui.styleChoices={}
  ui.appearanceHelp=label(ui.appearance,20,52,470,36,L("This choice is saved here. Changing profile does not change appearance."),11,"muted")
  local descriptions={grimoire=L("Grimoire: addons on the left, settings on the right"),atelier=L("Workshop: profiles stay in a column"),compact=L("Compact: short window, addon in the header")}
  for i,mode in ipairs({"grimoire","atelier","compact"}) do

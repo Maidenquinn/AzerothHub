@@ -80,6 +80,8 @@ AzerothHub.RegisterLocale("ro", {
  ["Some settings are waiting for a reload."] = "Unele setări așteaptă o reîncărcare.",
  ["This name already exists. Choose a new name."] = "Acest nume există deja. Alege un nume nou.",
  ["Automatic"] = "Automat",
+ ["Current"] = "Curent",
+ ["Light"] = "Ușor",
  ["Language"] = "Limbă",
  ["Interface language"] = "Limba interfeței",
  ["Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."] = "Urmează limba jocului sau forțează una dintre cele 14 limbi acceptate. Necesită /reload pentru a reconstrui fereastra Hub.",

@@ -312,3 +312,5 @@ Wishlist size
 Wishlist opacity
 Spell tracker
 Locked
+Current
+Light

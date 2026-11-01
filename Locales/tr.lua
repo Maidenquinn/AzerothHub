@@ -80,6 +80,8 @@ AzerothHub.RegisterLocale("tr", {
  ["Some settings are waiting for a reload."] = "Bazı ayarlar yeniden yükleme bekliyor.",
  ["This name already exists. Choose a new name."] = "Bu ad zaten var. Yeni bir ad seçin.",
  ["Automatic"] = "Otomatik",
+ ["Current"] = "Güncel",
+ ["Light"] = "Hafif",
  ["Language"] = "Dil",
  ["Interface language"] = "Arayüz dili",
  ["Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."] = "Oyun dilini izler veya desteklenen 14 dilden birini zorlar. Hub penceresini yeniden oluşturmak için /reload gerekir.",

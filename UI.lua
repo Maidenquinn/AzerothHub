@@ -14,7 +14,7 @@ function H.ToggleLauncher(quiet)
   launcher:SetWidth(290);launcher:SetFrameStrata("DIALOG");surface(launcher)
   if launcher.SetClampedToScreen then launcher:SetClampedToScreen(true) end
   launcher:SetPoint("TOPRIGHT",H.mini or Minimap,"BOTTOMRIGHT",0,-8)
-  label(launcher,12,10,266,25,H.T("Launcher"),15);launcher.rows={}
+  launcher.title=label(launcher,12,10,266,25,H.T("Launcher"),15);launcher.rows={}
   launcher.manage=button(launcher,12,44,266,28,H.T("Manager and profiles"),function() launcher:Hide();H.ToggleUI() end)
   launcher.empty=label(launcher,12,44,266,35,H.T("No shortcut available.\nDiagnostic: /azhub diag"),11)
  end
@@ -45,6 +45,7 @@ function H.ToggleLauncher(quiet)
    y=y+30
   end
  end
+ if launcher.title then launcher.title:SetText(H.T("Launcher")) end
  put(launcher.manage,H.T("Manager and profiles"));show(launcher.empty,used==0)
  if launcher.empty then launcher.empty:SetText(H.T("No shortcut available.\nDiagnostic: /azhub diag")) end
  if used==0 then y=y+40 end

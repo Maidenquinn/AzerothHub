@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.5 - 2026-11-01
+
+- Changer de langue met à jour tout le chrome (recherche, profils, apparence, placeholders) sans rester coincé en PT/FR.
+- Noms de profils par défaut affichés traduits (Actuel → Current / Atual / …).
+
 ## 0.7.4 - 2026-11-01
 
 - Fix menu langue : les noms s’affichaient en carrés (troncature UTF-8 avant sizing du menu).

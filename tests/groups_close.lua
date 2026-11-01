@@ -47,4 +47,20 @@ local fr
 for _,b in ipairs(ui.langRows) do if b.lang=="fr" then fr=b;break end end
 assert(fr);fr:Click()
 assert(H.db.language=="fr" and not ui.langMenu:IsShown())
+assert(ui.search.placeholder:GetText()==H.T("Search for an addon..."))
+assert(ui.profiles.titleLabel:GetText()==H.T("Your profiles"))
+assert(ui.appearance.titleLabel:GetText()==H.T("Hub appearance"))
+-- Switch to English: static chrome must follow (no leftover FR/PT).
+local enBtn
+for _,b in ipairs(ui.langRows) do if b.lang=="en" then enBtn=b;break end end
+ui.langHeader:Click();assert(enBtn);enBtn:Click()
+assert(H.db.language=="en")
+assert(ui.search.placeholder:GetText()=="Search for an addon...")
+assert(ui.optionSearch.placeholder:GetText()=="Search for a setting...")
+assert(ui.profiles.titleLabel:GetText()=="Your profiles")
+assert(ui.appearance.titleLabel:GetText()=="Hub appearance")
+assert(ui.appearanceHelp:GetText()=="This choice is saved here. Changing profile does not change appearance.")
+assert(string.find(ui.profile.caption:GetText(),"Current",1,true))
+assert(not string.find(ui.search.placeholder:GetText(),"Buscar",1,true))
+assert(not string.find(ui.profiles.titleLabel:GetText(),"Seus",1,true))
 print("PASS: foldable addon groups, Hub language first, native close on return, header language dropdown")
