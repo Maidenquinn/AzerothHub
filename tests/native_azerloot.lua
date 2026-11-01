@@ -26,8 +26,8 @@ assert(T.writes==0 and T.reloads==0)
 -- Reuse the native hierarchy, preserving source order and stable profile IDs.
 H.ToggleUI();local ui=AzerothHubWindow;H.selected="Azerloot";H.RefreshUI()
 assert(table.getn(ui.pageList)==3 and ui.page=="book")
-assert(ui.tabs[1].caption:GetText()=="Livre" and ui.tabs[2].caption:GetText()=="Liste de souhaits")
-assert(ui.options[1].option.header and ui.options[1].option.section=="Lecture")
+assert(ui.tabs[1].caption:GetText()=="Book" and ui.tabs[2].caption:GetText()=="Wishlist")
+assert(ui.options[1].option.header and ui.options[1].option.section=="Reading")
 local count=table.getn(T.all)
 for _,mode in ipairs({"grimoire","atelier","compact"}) do
  H.SetAppearance(mode)
@@ -38,7 +38,7 @@ for _,mode in ipairs({"grimoire","atelier","compact"}) do
  end
  ui.tabs[1]:Click();local before=table.getn(ui.filteredOptions)
  ui.options[1]:Click();assert(table.getn(ui.filteredOptions)<before)
- ui.optionSearch:SetText("Allie")
+ ui.optionSearch:SetText("Hero")
  assert(table.getn(ui.filteredOptions)==1 and ui.filteredOptions[1].id=="warn/Sounds/soundDown")
  assert(ui.page=="book") -- global search does not change the selected tab
  ui.optionSearch:SetText("");ui.options[1]:Click();assert(table.getn(ui.filteredOptions)==before)

@@ -1,22 +1,21 @@
-# Release 0.7.0
+# Release 0.7.1
 
-## Artefact joueur
+## Player artifact
 
-- `AzerothHub-0.7.0.zip` (dossier `AzerothHub/` à extraire dans `AddOns`)
-- SHA-256 dans `AzerothHub-0.7.0.zip.sha256`
-- Ne pas utiliser l’archive « Source code » de GitHub
+- `AzerothHub-0.7.1.zip` (extract folder `AzerothHub/` into `AddOns`)
+- SHA-256 in `AzerothHub-0.7.1.zip.sha256`
+- Do not use GitHub’s “Source code” archive
 
-## Contenu
+## Highlights
 
-- Lanceur / gestionnaire central (`/azhub`, `/hub`, engrenage minimap)
-- Profils multiples, chargement dynamique du profil actif
-- Réglages intégrés + ouverture native pour le catalogue Survivors
-- Inventaire aligné sur les addons référencés (Desktop / [SurvivorsForge](https://forge.rezondes.net/))
-- Guide auteurs : `docs/INTEGRATION.md` (`AzerothHubCatalog`)
+- UI + Hub-authored schemas in all **14** Survivors languages
+- Detects `azsLanguage`; optional override in Hub → Language
+- Profiles, unified settings UI, SurvivorsForge catalog (unchanged from 0.7.0)
 
 ## Build
 
 ```text
+python tools/audit_locales.py
 python tests/run.py
 python tools/build_release.py
 ```

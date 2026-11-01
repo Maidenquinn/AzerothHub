@@ -14,9 +14,9 @@ function H.ToggleLauncher(quiet)
   launcher:SetWidth(290);launcher:SetFrameStrata("DIALOG");surface(launcher)
   if launcher.SetClampedToScreen then launcher:SetClampedToScreen(true) end
   launcher:SetPoint("TOPRIGHT",H.mini or Minimap,"BOTTOMRIGHT",0,-8)
-  label(launcher,12,10,266,25,"Lanceur",15);launcher.rows={}
-  launcher.manage=button(launcher,12,44,266,28,"Gestionnaire et profils",function() launcher:Hide();H.ToggleUI() end)
-  launcher.empty=label(launcher,12,44,266,35,"Aucun raccourci disponible.\nDiagnostic : /azhub diag",11)
+  label(launcher,12,10,266,25,H.T("Launcher"),15);launcher.rows={}
+  launcher.manage=button(launcher,12,44,266,28,H.T("Manager and profiles"),function() launcher:Hide();H.ToggleUI() end)
+  launcher.empty=label(launcher,12,44,266,35,H.T("No shortcut available.\nDiagnostic: /azhub diag"),11)
  end
  for _,row in ipairs(launcher.rows) do row:Hide() end
  local y=44
@@ -25,8 +25,8 @@ function H.ToggleLauncher(quiet)
  local function add(name,title)
   if not seen[name] then table.insert(items,{name=name,title=title or name});seen[name]=true end
  end
- for _,r in ipairs(H.rows) do if H.CanOpen(r.name) then add(r.name,r.title) end end
- for name in pairs(H.adapters) do if H.CanOpen(name) then add(name) end end
+ for _,r in ipairs(H.rows) do if r.name~="AzerothHub" and H.CanOpen(r.name) then add(r.name,r.title) end end
+ for name in pairs(H.adapters) do if name~="AzerothHub" and H.CanOpen(name) then add(name) end end
  for _,record in pairs(H.buttons) do
   local r=H.byName[record.addon];add(record.addon,r and r.title)
  end
@@ -45,7 +45,8 @@ function H.ToggleLauncher(quiet)
    y=y+30
   end
  end
- show(launcher.empty,used==0)
+ put(launcher.manage,H.T("Manager and profiles"));show(launcher.empty,used==0)
+ if launcher.empty then launcher.empty:SetText(H.T("No shortcut available.\nDiagnostic: /azhub diag")) end
  if used==0 then y=y+40 end
  launcher.manage:ClearAllPoints();launcher.manage:SetPoint("TOPLEFT",launcher,"TOPLEFT",12,-y)
  launcher:SetHeight(y+40)

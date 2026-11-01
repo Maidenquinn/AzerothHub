@@ -1,5 +1,7 @@
 local H=AzerothHub
 local ui
+local function L(s) return H.T(s) end
+local function LF(s,...) return H.TF(s,unpack(arg)) end
 local styles={
  grimoire={name="Grimoire",w=1120,h=740,bg={.105,.09,.07},panel={.15,.13,.10},field={.075,.07,.055},line={.32,.27,.19},accent={.83,.68,.42},text={.94,.89,.79}},
  atelier={name="Atelier",w=1280,h=740,bg={.10,.125,.14},panel={.14,.17,.19},field={.075,.095,.11},line={.25,.31,.33},accent={.56,.77,.70},text={.91,.95,.94}},
@@ -66,7 +68,7 @@ end
 local function names()
  local out={};for n in pairs(H.db.profiles) do table.insert(out,n) end;table.sort(out);return out
 end
-local function result(ok,err) if not ok then H.Say(err or "Action indisponible") end;H.RefreshUI() end
+local function result(ok,err) if not ok then H.Say(err or L("Action unavailable")) end;H.RefreshUI() end
 function H.FormatOptionValue(o,v)
  if not H.Number(v) then return tostring(v) end
  local n=math.floor(v*(o.displayScale or 1)*100+.5)/100
@@ -99,11 +101,11 @@ local function updatePreview()
  end
  if not p.visual then
   local ok,v=H.Call(a.CreateVisual,nil,p)
-  if not ok or not v then unavailable("Apercu indisponible dans cette version.");return end
+  if not ok or not v then unavailable(L("Preview unavailable in this version."));return end
   p.visual=v
  end
  local ok=H.Call(a.Style,p.visual)
- if not ok then unavailable("Apercu indisponible dans cette version.");return end
+ if not ok then unavailable(L("Preview unavailable in this version."));return end
  local d=a.db;local extent=math.max(d.size*1.8,d.crosshair*2+16,d.dot*2,1)
  local reserve=ph>=240 and 112 or 74
  local room=math.max(28,ph-reserve-22)
@@ -114,11 +116,11 @@ local function updatePreview()
  p.visual:SetScale(scale);p.visual:Show()
  p.pointer:ClearAllPoints();p.pointer:SetPoint("CENTER",p,"TOP",10,-(visualY+10))
  show(p.note,ph>=240)
- if ph>=240 then place(p.note,p,8,ph-104,184,22);p.note:SetText("Taille reelle : "..tostring(d.size).." px") end
+ if ph>=240 then place(p.note,p,8,ph-104,184,22);p.note:SetText(LF("Real size: %s px",tostring(d.size))) end
  place(p.state,p,8,ph-74,184,24)
  place(p.activate,p,8,ph-36,184,26)
- p.state:SetText(d.enabled and "Actif en jeu." or "Inactif en jeu. L'apercu ne l'active pas.")
- put(p.activate,d.enabled and "Desactiver" or "Activer en jeu")
+ p.state:SetText(d.enabled and L("Active in game.") or L("Inactive in game. Preview does not enable it."))
+ put(p.activate,d.enabled and L("Disable") or L("Enable in game"))
  if p.visual.halo then p.visual.halo:SetAlpha(d.pulse and (.72+.28*math.sin((GetTime and GetTime() or 0)*4)) or 1) end
 end
 function H.PeekInGame()
@@ -142,11 +144,12 @@ function H.LaunchAddon(name,right)
  if fallback then return H.LaunchButton(fallback,right) end
  return H.Open(name)
 end
-local translations={book="Livre",Reading="Lecture",Book="Livre",Wishlist="Liste de souhaits",wish="Liste de souhaits",Window="Affichage",Contents="Contenu",warn="Alertes",Display="Affichage",Colours="Couleurs",Sounds="Sons",General="General",Windows="Fenetres",Layout="Disposition",Coop="Cooperation"}
-local optionLabels={Font="Police",Language="Langue",["Book size"]="Taille du livre",["Wishlist window"]="Afficher la liste de souhaits",Locked="Verrouiller la position",["Wishlist size"]="Taille de la liste",["Wishlist opacity"]="Opacite de la liste",["Spell tracker"]="Suivi des sorts",Warnings="Avertissements",["Boss in the wishlist"]="Boss dans la liste",["Boss warnings"]="Alertes de boss",["Guardians and waves"]="Gardiens et vagues",["Small notices"]="Petites notifications",["Boss appears in 10 sec."]="Apparition du boss",["Phase change"]="Changement de phase",["Hero down (co-op)"]="Allie a terre (coop)"}
 local function section(s)
  s=s or "General";local out={}
- for part in string.gfind(s,"[^/]+") do part=string.gsub(string.gsub(part,"^%s+",""),"%s+$","");table.insert(out,translations[part] or part) end
+ for part in string.gfind(s,"[^/]+") do
+  part=string.gsub(string.gsub(part,"^%s+",""),"%s+$","")
+  table.insert(out,H.T(part))
+ end
  return table.concat(out," / ")
 end
 local function wheel(f,fn)
@@ -298,15 +301,15 @@ function H.RefreshUI()
  if not H.draft then H.SelectProfile(H.profile) end
  ui.rendering=true
  for _,f in ipairs({ui.search,ui.optionSearch,ui.nameEdit}) do if f.placeholder then show(f.placeholder,(f:GetText() or "")=="") end end
- local addonTitle=H.byName[H.selected or ""] and H.DisplayTitle(H.byName[H.selected]) or "Choisir"
- put(ui.profile,fit("Profil : "..H.profile,ui.profile:GetWidth()-16,12))
- put(ui.manage,fit("Addon : "..addonTitle,ui.manage:GetWidth()-16,12))
+ local addonTitle=H.byName[H.selected or ""] and H.DisplayTitle(H.byName[H.selected]) or L("Choose")
+ put(ui.profile,fit(LF("Profile: %s",H.profile),ui.profile:GetWidth()-16,12))
+ put(ui.manage,fit(LF("Addon: %s",addonTitle),ui.manage:GetWidth()-16,12))
  ui.manage:SetScript("OnClick",function() if H.db.appearance=="compact" then show(ui.addons,not ui.addons:IsShown()) else showProfiles() end end)
  if ui.nameProfile~=H.profile then ui.nameProfile=H.profile;ui.nameEdit:SetText("") end
  local ns=names();ui.profileOffset=math.max(0,math.min(ui.profileOffset or 0,math.max(0,table.getn(ns)-6)))
  for i,b in ipairs(ui.profileRows) do
   local name=ns[ui.profileOffset+i];show(b,name~=nil);b.profile=name
-  if name then b.hubSelected=name==H.profile;put(b,fit(name..(name==H.profile and " - actif" or ""),b:GetWidth()-16,12));paint(b) end
+  if name then b.hubSelected=name==H.profile;put(b,fit(name..(name==H.profile and (" "..L("- active")) or ""),b:GetWidth()-16,12));paint(b) end
  end
  for i,b in ipairs(ui.railProfiles) do
   local name=ns[i];show(b,name~=nil);b.profile=name
@@ -331,27 +334,27 @@ function H.RefreshUI()
   table.insert(rows,{group=true,label=label,count=table.getn(list)})
   for _,r in ipairs(list) do table.insert(rows,r) end
  end
- pushGroup("Avec reglages",ready)
- pushGroup("Charges sans schema Hub",openOnly)
- pushGroup("Catalogue (non charges)",catalog)
+ pushGroup(L("With settings"),ready)
+ pushGroup(L("Loaded without Hub schema"),openOnly)
+ pushGroup(L("Catalog (not loaded)"),catalog)
  ui.filteredRows=rows;ui.addonOffset=math.max(0,math.min(ui.addonOffset or 0,math.max(0,table.getn(rows)-ui.addonCount)))
- ui.count:SetText("Addons  "..table.getn(H.rows).."  |  "..table.getn(ready).." reglages")
+ ui.count:SetText(LF("Addons  %s  |  %s settings",table.getn(H.rows),table.getn(ready)))
  for i,row in ipairs(ui.rows) do
   local r=i<=ui.addonCount and rows[ui.addonOffset+i] or nil
   show(row,r~=nil);row.addon=nil
   if r and r.group then
    row.hubSurface="panel";row.hubSelected=false;paint(row)
    row.title:SetText(fit(r.label,row.title:GetWidth(),12));tint(row.title,"accent")
-   row.state:SetText(plural(r.count,"addon","addons"))
+   row.state:SetText(plural(r.count,L("addon"),L("addons")))
   elseif r then
    local n=table.getn(H.Options(r.name));row.addon=r.name
    row.hubSurface="field";row.hubSelected=H.selected==r.name;paint(row)
    row.title:SetText(fit(H.DisplayTitle(r),row.title:GetWidth(),12));tint(row.title,"text")
-   row.state:SetText(n>0 and plural(n,"reglage","reglages") or (r.loaded and "Fenetre d'origine" or "Non charge"))
+   row.state:SetText(n>0 and plural(n,L("setting"),L("settings")) or (r.loaded and L("Native window") or L("Not loaded")))
   end
  end
  updateBar(ui.addonBar,table.getn(rows),ui.addonCount,ui.addonOffset)
- ui.pages:SetText(table.getn(rows)==0 and "Aucun addon" or ((ui.addonOffset+1).."-"..math.min(table.getn(rows),ui.addonOffset+ui.addonCount).." / "..table.getn(rows)))
+ ui.pages:SetText(table.getn(rows)==0 and L("No addon") or ((ui.addonOffset+1).."-"..math.min(table.getn(rows),ui.addonOffset+ui.addonCount).." / "..table.getn(rows)))
  local r=H.byName[H.selected or ""];local opts=r and H.Options(r.name) or {};local pages,pageSeen={},{}
  if ui.navigationFor~=H.selected then ui.navigationFor=H.selected;ui.page=nil;ui.category=nil;ui.closed={};ui.tabOffset=0;ui.optionOffset=0 end
  for _,o in ipairs(opts) do
@@ -361,7 +364,7 @@ function H.RefreshUI()
  if not pageSeen[ui.page or ""] then ui.page=pages[1] and pages[1].key end
  ui.pageList=pages;ui.tabOffset=math.max(0,math.min(ui.tabOffset or 0,math.max(0,table.getn(pages)-3)))
  placeBody()
- local pageLabel="General"
+ local pageLabel=L("General")
  for _,p in ipairs(pages) do if p.key==ui.page then pageLabel=p.label end end
  for i,b in ipairs(ui.tabs) do
   local p=pages[ui.tabOffset+i];b.page=p and p.key;show(b,p~=nil and table.getn(pages)>1)
@@ -375,12 +378,12 @@ function H.RefreshUI()
  if ui.category and not seen[ui.category] then ui.category=nil end
  ui.categories.offset=math.max(0,math.min(ui.categories.offset or 0,math.max(0,table.getn(cats)-7)))
  for i,b in ipairs(ui.categoryRows) do
-  local name=i==1 and "Toutes les sections" or cats[ui.categories.offset+i-1]
+  local name=i==1 and L("All sections") or cats[ui.categories.offset+i-1]
   b.category=i~=1 and name or nil;show(b,name~=nil);if name then put(b,fit(name,b:GetWidth()-16,12)) end
  end
  local groups,order={},{}
  for _,o in ipairs(opts) do
-  local s=section(o.section);local title=optionLabels[o.label] or o.label or o.id
+  local s=section(o.section);local title=L(o.label or o.id)
   if (q~="" or (o.page or "general")==ui.page) and (q~="" or not ui.category or ui.category==s) and (q=="" or string.find(string.lower(title.." "..s.." "..section(o.pageLabel)),q,1,true)) then
    local group=(o.page or "general").."/"..s
    local bucket=groups[group]
@@ -396,15 +399,15 @@ function H.RefreshUI()
  ui.filteredOptions=filtered;ui.optionOffset=math.max(0,math.min(ui.optionOffset or 0,math.max(0,table.getn(filtered)-ui.optionCount)))
  local hits=0;for _,o in ipairs(filtered) do if not o.header then hits=hits+1 end end
  local crumb
- if not r then crumb="Choisir un addon"
- elseif q~="" then crumb=hits.." resultat"..(hits>1 and "s" or "").."  >  tous les onglets"
- elseif table.getn(opts)==0 then crumb=H.profile.."  >  "..addonTitle.."  >  options d'origine"
+ if not r then crumb=L("Choose an addon")
+ elseif q~="" then crumb=hits.." "..(hits>1 and L("results") or L("result")).."  >  "..L("all tabs")
+ elseif table.getn(opts)==0 then crumb=H.profile.."  >  "..addonTitle.."  >  "..L("original options")
  elseif table.getn(pages)<=1 then crumb=H.profile.."  >  "..addonTitle
  else crumb=H.profile.."  >  "..addonTitle.."  >  "..pageLabel end
  ui.description:SetText(fit(crumb,ui.description:GetWidth(),11))
- ui.details:SetText(fit(r and addonTitle or "Choisir un addon",ui.details:GetWidth(),16))
+ ui.details:SetText(fit(r and addonTitle or L("Choose an addon"),ui.details:GetWidth(),16))
  show(ui.empty,table.getn(filtered)==0)
- ui.empty:SetText(q~="" and "Aucun reglage trouve." or (table.getn(opts)==0 and "Pas de reglages dans le Hub." or "Section vide."))
+ ui.empty:SetText(q~="" and L("No setting found.") or (table.getn(opts)==0 and L("No Hub settings.") or L("Empty section.")))
  H.refreshing=true
  for i,row in ipairs(ui.options) do
   local o=i<=ui.optionCount and filtered[ui.optionOffset+i] or nil;show(row,o~=nil);row.option=o
@@ -415,29 +418,29 @@ function H.RefreshUI()
    row.hubSurface="panel";row.hubSelected=false;paint(row)
    place(row.title,row,8,2,hw,18);place(row.section,row,8,18,hw,14)
    row.title:SetText(fit((ui.closed[o.group] and ">  " or "v  ")..o.section,hw,13));tint(row.title,"accent")
-   row.section:SetText(plural(n,"reglage","reglages")..(ui.closed[o.group] and (n>1 and " masques" or " masque") or ""))
+   row.section:SetText(plural(n,L("setting"),L("settings"))..(ui.closed[o.group] and (" "..L("hidden")) or ""))
   elseif o then
    local nest=q=="" and 16 or 0
    local labelW=math.max(40,ui.labelW-nest)
    row.hubSurface="field";row.hubSelected=false;paint(row)
-   local label=optionLabels[o.label] or o.label or o.id
+   local label=L(o.label or o.id)
    local detail=""
    if q~="" then local page,sec=section(o.pageLabel),section(o.section);detail=page==sec and page or (page.." > "..sec)
-   elseif o.reload then detail="Apres rechargement"
-   elseif type(o.tip)=="string" and o.tip~="" and o.tip~=label then detail=o.tip end
+   elseif o.reload then detail=L("After reload")
+   elseif type(o.tip)=="string" and o.tip~="" and o.tip~=label then detail=L(o.tip) end
    if detail=="" then place(row.title,row,8+nest,10,labelW,20);row.section:SetText("")
    else place(row.title,row,8+nest,2,labelW,18);place(row.section,row,8+nest,20,labelW,16);row.section:SetText(fit(detail,labelW,10)) end
    row.title:SetText(fit(label,labelW,13));tint(row.title,"text")
    local ok,v=H.Call(o.get)
    if ok and H.Valid(o,v) then
-    if o.kind=="check" then put(row.toggle,v and "Active" or "Inactif");row.toggle.hubSelected=v;paint(row.toggle);row.toggle:Show()
-    elseif o.kind=="choice" then put(row.choice,fit(tostring(o.values[v]).."  >",row.choice:GetWidth()-12,12));row.choice:Show()
+    if o.kind=="check" then put(row.toggle,v and L("Active") or L("Inactive"));row.toggle.hubSelected=v;paint(row.toggle);row.toggle:Show()
+    elseif o.kind=="choice" then put(row.choice,fit(tostring(L(o.values[v])).."  >",row.choice:GetWidth()-12,12));row.choice:Show()
     elseif o.kind=="slider" then
      local low=o.min or 0;if o.minimum then local valid,n=H.Call(o.minimum);if valid and H.Number(n) then low=n end end
      row.slider:SetMinMaxValues(low,o.max);row.slider:SetValueStep(o.step or 1);row.slider:SetValue(v);row.slider:Show()
      row.minus:Show();row.plus:Show();row.value:SetText(fit(H.FormatOptionValue(o,v),row.value:GetWidth(),11))
     end
-   else row.value:SetText("N/D") end
+   else row.value:SetText(L("N/A")) end
   end
  end
  H.refreshing=false
@@ -445,11 +448,11 @@ function H.RefreshUI()
  updateBar(ui.optionBar,table.getn(filtered),ui.optionCount,ui.optionOffset)
  local n=table.getn(filtered)
  ui.optionPages:SetText(n==0 and "" or ((ui.optionOffset+1).."-"..math.min(n,ui.optionOffset+ui.optionCount).." / "..n))
- put(ui.gather,H.db.gather and "Minimap regroupee" or "Minimap separee")
+ put(ui.gather,H.db.gather and L("Minimap gathered") or L("Minimap separated"))
  local note=H.error or H.message or ""
- if note=="" and H.needsReload then note="Certains reglages attendent un rechargement." end
+ if note=="" and H.needsReload then note=L("Some settings are waiting for a reload.") end
  ui.status:SetText(fit(note,ui.status:GetWidth(),10))
- show(ui.reload,H.needsReload);put(ui.reload,"Recharger l'interface")
+ show(ui.reload,H.needsReload);put(ui.reload,L("Reload UI"))
  for mode,b in pairs(ui.styleChoices) do b.hubSelected=H.db.appearance==mode;paint(b) end
  ui.rendering=nil
 end
@@ -472,14 +475,14 @@ local function optionHint(f,row)
   local o=row.option;if not o or not GameTooltip then return end
   GameTooltip:SetOwner(f,"ANCHOR_RIGHT")
   if o.header then
-   GameTooltip:SetText(o.section or "Section")
-   GameTooltip:AddLine(ui.closed[o.group] and "Cliquer pour afficher ces reglages." or "Cliquer pour replier cette section.",.8,.8,.8,true)
+   GameTooltip:SetText(o.section and L(o.section) or L("Section"))
+   GameTooltip:AddLine(ui.closed[o.group] and L("Click to show these settings.") or L("Click to fold this section."),.8,.8,.8,true)
    GameTooltip:Show();ui.tipOwned=true;return
   end
-  GameTooltip:SetText(optionLabels[o.label] or o.label or o.id)
-  if type(o.tip)=="string" then GameTooltip:AddLine(o.tip,1,1,1,true) end
-  if o.kind=="slider" then GameTooltip:AddLine("De "..H.FormatOptionValue(o,o.min or 0).." a "..H.FormatOptionValue(o,o.max)..". Boutons - / + pour ajuster finement.",.8,.8,.8,true) end
-  if o.reload then GameTooltip:AddLine("Ce reglage peut demander un rechargement.",1,.75,.3,true) end
+  GameTooltip:SetText(L(o.label or o.id))
+  if type(o.tip)=="string" then GameTooltip:AddLine(L(o.tip),1,1,1,true) end
+  if o.kind=="slider" then GameTooltip:AddLine(LF("From %s to %s. Use - / + for fine adjustment.",H.FormatOptionValue(o,o.min or 0),H.FormatOptionValue(o,o.max)),.8,.8,.8,true) end
+  if o.reload then GameTooltip:AddLine(L("This setting may require a reload."),1,.75,.3,true) end
   GameTooltip:Show();ui.tipOwned=true
  end)
  f:SetScript("OnLeave",function() paint(f);if ui.tipOwned and GameTooltip then GameTooltip:Hide();ui.tipOwned=nil end end)
@@ -496,15 +499,15 @@ local function build()
  ui.drag:SetScript("OnDragStart",function() ui:StartMoving() end);ui.drag:SetScript("OnDragStop",function() ui:StopMovingOrSizing() end)
  ui.title=label(ui.header,12,8,190,30,"Azeroth Hub",20,"heading")
  ui.subtitle=label(ui.header,12,32,8,8,"",11,"muted");ui.subtitle:Hide()
- ui.close=button(ui,0,0,28,28,"X",H.HideManager);ui.styleButton=button(ui,0,0,108,28,"Apparence",H.ShowAppearance)
+ ui.close=button(ui,0,0,28,28,"X",H.HideManager);ui.styleButton=button(ui,0,0,108,28,L("Appearance"),H.ShowAppearance)
  ui.saved=label(ui,0,0,8,8,"",11,"accent");ui.saved:Hide()
- ui.profile=button(ui,0,0,190,28,"Profil",showProfiles);ui.manage=button(ui,0,0,180,28,"Addon",showProfiles)
+ ui.profile=button(ui,0,0,190,28,L("Profile"),showProfiles);ui.manage=button(ui,0,0,180,28,L("Addon"),showProfiles)
  ui.hint=label(ui,0,0,8,8,"",11,"muted");ui.hint:Hide()
- ui.profileRail=CreateFrame("Frame",nil,ui);surface(ui.profileRail,"field");label(ui.profileRail,10,6,148,22,"Profils",11,"accent")
+ ui.profileRail=CreateFrame("Frame",nil,ui);surface(ui.profileRail,"field");ui.profileRailTitle=label(ui.profileRail,10,6,148,22,L("Profiles"),11,"accent")
  ui.railProfiles={};for i=1,8 do local b=button(ui.profileRail,0,0,148,36,"",function() end);b:SetScript("OnClick",function() if b.profile then result(H.UseConfigProfile(b.profile)) end end);ui.railProfiles[i]=b end
- ui.railManage=button(ui.profileRail,0,0,148,30,"Gerer les profils",showProfiles)
- ui.addons=CreateFrame("Frame",nil,ui);surface(ui.addons,"panel");ui.count=label(ui.addons,12,10,220,22,"MES ADDONS",11,"accent")
- ui.search=edit(ui.addons,0,0,200,function() ui.addonOffset=0;H.RefreshUI() end,"Rechercher un addon...")
+ ui.railManage=button(ui.profileRail,0,0,148,30,L("Manage profiles"),showProfiles)
+ ui.addons=CreateFrame("Frame",nil,ui);surface(ui.addons,"panel");ui.count=label(ui.addons,12,10,220,22,L("ADDONS"),11,"accent")
+ ui.search=edit(ui.addons,0,0,200,function() ui.addonOffset=0;H.RefreshUI() end,L("Search for an addon..."))
  ui.addonView=CreateFrame("Frame",nil,ui.addons);ui.rows={}
  for i=1,12 do
   local row=button(ui.addonView,0,0,240,36,"",function() end);row.caption:Hide()
@@ -518,13 +521,13 @@ local function build()
  ui.addonNext=button(ui.addons,0,0,28,24,">",function() move("addons",ui.addonCount) end)
  ui.pages=label(ui.addons,0,0,160,24,"",10,"muted");ui.pages:SetJustifyH("CENTER")
  ui.details=label(ui,0,0,400,24,"",16,"heading");ui.description=label(ui,0,0,650,16,"",11,"muted")
- ui.original=button(ui,0,0,200,28,"Options d'origine",function()
+ ui.original=button(ui,0,0,200,28,L("Original options"),function()
   if not H.selected then return end;local a=H.adapters[H.selected];H.HideManager()
   local ok,err
   if a and a.configure then ok,err=H.Call(a.configure) else ok,err=H.Open(H.selected) end
-  if ok then ui.returnBar:Show() else H.Say(err or "Options indisponibles") end
+  if ok then ui.returnBar:Show() else H.Say(err or L("Options unavailable")) end
  end)
- ui.peek=button(ui,0,0,118,28,"Voir en jeu",H.PeekInGame)
+ ui.peek=button(ui,0,0,118,28,L("View in game"),H.PeekInGame)
  ui.tabView=CreateFrame("Frame",nil,ui);ui.tabs={}
  local function shiftTabs(d) ui.tabOffset=math.max(0,(ui.tabOffset or 0)+d);H.RefreshUI() end
  wheel(ui.tabView,function(d) shiftTabs(-d) end)
@@ -535,8 +538,8 @@ local function build()
   b:SetScript("OnClick",function() if b.page then ui.page=b.page;ui.category=nil;ui.optionOffset=0;ui.optionSearch:SetText("");H.RefreshUI() end end)
   wheel(b,function(d) shiftTabs(-d) end);ui.tabs[i]=b
  end
- ui.categoryButton=button(ui,0,0,210,28,"Categories",categoryMenu)
- ui.optionSearch=edit(ui,0,0,420,function() ui.optionOffset=0;H.RefreshUI() end,"Rechercher un reglage...")
+ ui.categoryButton=button(ui,0,0,210,28,L("Categories"),categoryMenu)
+ ui.optionSearch=edit(ui,0,0,420,function() ui.optionOffset=0;H.RefreshUI() end,L("Search for a setting..."))
  ui.optionView=CreateFrame("Frame",nil,ui);wheel(ui.optionView,function(d) move("options",-d) end)
  ui.options={}
  for i=1,12 do
@@ -567,19 +570,19 @@ local function build()
  ui.gather:SetScript("OnEnter",function()
   local c=theme().accent;ui.gather:SetBackdropBorderColor(c[1],c[2],c[3],1)
   if not GameTooltip then return end
-  GameTooltip:SetOwner(ui.gather,"ANCHOR_RIGHT");GameTooltip:SetText("Boutons de la minimap")
-  GameTooltip:AddLine(H.db.gather and "Les raccourcis sont dans le lanceur. Cliquer pour les separer." or "Chaque addon a son bouton. Cliquer pour les regrouper.",1,1,1,true)
+  GameTooltip:SetOwner(ui.gather,"ANCHOR_RIGHT");GameTooltip:SetText(L("Minimap buttons"))
+  GameTooltip:AddLine(H.db.gather and L("Shortcuts are in the launcher. Click to separate them.") or L("Each addon has its own button. Click to gather them."),1,1,1,true)
   GameTooltip:Show();ui.tipOwned=true
  end)
  ui.gather:SetScript("OnLeave",function() paint(ui.gather);if ui.tipOwned and GameTooltip then GameTooltip:Hide();ui.tipOwned=nil end end)
- ui.status=label(ui,0,0,450,32,"",10,"muted");ui.reload=button(ui,0,0,150,26,"Recharger",function() H.Call(ReloadUI) end)
+ ui.status=label(ui,0,0,450,32,"",10,"muted");ui.reload=button(ui,0,0,150,26,L("Reload"),function() H.Call(ReloadUI) end)
  ui.cursorPreview=CreateFrame("Frame","AzerothHubCursorPreview",ui);surface(ui.cursorPreview,"panel");ui.cursorPreview:EnableMouse(false)
- label(ui.cursorPreview,8,4,184,16,"Apercu du curseur",12,"accent")
+ ui.cursorPreviewTitle=label(ui.cursorPreview,8,4,184,16,L("Cursor preview"),12,"accent")
  ui.cursorPreview.note=label(ui.cursorPreview,12,164,204,36,"",11,"muted")
  ui.cursorPreview.state=label(ui.cursorPreview,12,204,204,28,"",11)
  ui.cursorPreview.pointer=ui.cursorPreview:CreateTexture(nil,"OVERLAY");ui.cursorPreview.pointer:SetTexture("Interface\\Cursor\\Point")
  ui.cursorPreview.pointer:SetWidth(24);ui.cursorPreview.pointer:SetHeight(24);ui.cursorPreview.pointer:SetPoint("CENTER",ui.cursorPreview,"TOP",10,-108)
- ui.cursorPreview.activate=button(ui.cursorPreview,12,279,204,28,"Activer en jeu",function()
+ ui.cursorPreview.activate=button(ui.cursorPreview,12,279,204,28,L("Enable in game"),function()
   for _,o in ipairs(H.Options("AzerothCursor")) do if o.id=="enabled" then result(H.SetOption(o,not AzerothCursor.db.enabled));return end end
  end)
  ui.cursorPreview:SetScript("OnUpdate",function()
@@ -591,7 +594,7 @@ local function build()
  ui.returnBar=CreateFrame("Frame","AzerothHubReturn",UIParent);ui.returnBar:SetWidth(350);ui.returnBar:SetHeight(42)
  ui.returnBar:SetPoint("TOP",UIParent,"TOP",0,-75);ui.returnBar:SetFrameStrata("DIALOG")
  if ui.returnBar.SetFrameLevel then ui.returnBar:SetFrameLevel(200) end;surface(ui.returnBar,"panel")
- ui.returnButton=button(ui.returnBar,8,7,296,28,"Retour au Hub",function()
+ ui.returnButton=button(ui.returnBar,8,7,296,28,L("Back to Hub"),function()
   H.CaptureConfig(H.profile);ui.returnBar:Hide();if not ui:IsShown() then H.ToggleUI() end
  end)
  button(ui.returnBar,312,7,28,28,"X",function() ui.returnBar:Hide() end);ui.returnBar:Hide()
@@ -602,23 +605,23 @@ local function build()
  if ui.shade.SetFrameLevel then ui.shade:SetFrameLevel(90) end
  ui.shade:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});ui.shade:SetBackdropColor(0,0,0,.60);ui.shade:Hide()
  ui.shade:SetScript("OnClick",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide() end)
- ui.profiles=makeDialog("AzerothHubProfileMenu",490,470,"Vos profils");ui.profileRows={};ui.profiles.rows=ui.profileRows
- label(ui.profiles,20,50,450,40,"Ce profil enregistre les reglages integres des addons.\nCollections, historique et activation ne sont pas copies.",11,"muted")
+ ui.profiles=makeDialog("AzerothHubProfileMenu",490,470,L("Your profiles"));ui.profileRows={};ui.profiles.rows=ui.profileRows
+ ui.profilesHelp=label(ui.profiles,20,50,450,40,L("This profile stores integrated addon settings.\nCollections, history and activation are not copied."),11,"muted")
  for i=1,6 do local b=button(ui.profiles,20,96+(i-1)*40,450,34,"",function() end);b:SetScript("OnClick",function() if b.profile then ui.profiles:Hide();ui.shade:Hide();result(H.UseConfigProfile(b.profile)) end end);wheel(b,function(d) ui.profileOffset=ui.profileOffset-d;H.RefreshUI() end);ui.profileRows[i]=b end
  wheel(ui.profiles,function(d) ui.profileOffset=ui.profileOffset-d;H.RefreshUI() end)
- label(ui.profiles,20,344,450,22,"Nouveau profil a partir des reglages actuels",12,"accent")
- ui.nameEdit=edit(ui.profiles,20,374,270,function() if ui.nameEdit.placeholder then show(ui.nameEdit.placeholder,(ui.nameEdit:GetText() or "")=="") end end,"Nom du nouveau profil...")
+ ui.profilesNew=label(ui.profiles,20,344,450,22,L("New profile from current settings"),12,"accent")
+ ui.nameEdit=edit(ui.profiles,20,374,270,function() if ui.nameEdit.placeholder then show(ui.nameEdit.placeholder,(ui.nameEdit:GetText() or "")=="") end end,L("Name of the new profile..."))
  ui.nameEdit:SetMaxLetters(48)
- ui.createProfile=button(ui.profiles,302,374,168,28,"Copier ce profil",function()
+ ui.createProfile=button(ui.profiles,302,374,168,28,L("Copy this profile"),function()
   local name=string.gsub(string.gsub(ui.nameEdit:GetText() or "","^%s+",""),"%s+$","")
-  if H.db.profiles[name] then result(false,"Ce nom existe deja. Choisir un nouveau nom.");return end
+  if H.db.profiles[name] then result(false,L("This name already exists. Choose a new name."));return end
   H.CaptureConfig(H.profile);local ok,err=H.SaveProfile(name)
   if ok then H.SelectProfile(name);H.db.activeProfile=name;ui.profiles:Hide();ui.shade:Hide() end;result(ok,err)
  end)
- ui.apply=button(ui.profiles,20,424,450,28,"Reappliquer les reglages enregistres",function() result(H.UseConfigProfile(H.profile)) end)
- ui.appearance=makeDialog("AzerothHubAppearance",510,370,"Apparence du Hub");ui.styleChoices={}
- label(ui.appearance,20,52,470,36,"Le choix reste enregistre ici. Changer de profil ne change pas l'apparence.",11,"muted")
- local descriptions={grimoire="Grimoire : addons a gauche, reglages a droite",atelier="Atelier : les profils restent dans une colonne",compact="Compact : fenetre courte, addon dans l'en-tete"}
+ ui.apply=button(ui.profiles,20,424,450,28,L("Reapply saved settings"),function() result(H.UseConfigProfile(H.profile)) end)
+ ui.appearance=makeDialog("AzerothHubAppearance",510,370,L("Hub appearance"));ui.styleChoices={}
+ ui.appearanceHelp=label(ui.appearance,20,52,470,36,L("This choice is saved here. Changing profile does not change appearance."),11,"muted")
+ local descriptions={grimoire=L("Grimoire: addons on the left, settings on the right"),atelier=L("Workshop: profiles stay in a column"),compact=L("Compact: short window, addon in the header")}
  for i,mode in ipairs({"grimoire","atelier","compact"}) do
   local key=mode;ui.styleChoices[key]=button(ui.appearance,20,100+(i-1)*76,470,62,descriptions[key],function() result(H.SetAppearance(key)) end)
  end

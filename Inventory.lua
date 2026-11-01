@@ -11,7 +11,7 @@ AzerothHubInventory={
  {name="AzerothCursor",title="Azeroth Cursor",notes="High contrast cursor ring, aura and crosshair. FR / EN.",version="1.2.0"},
  {name="AzerothDeathRecap",title="Azeroth Death Recap",notes="A bounded, evidence-labelled timeline before death. /azrecap",version="0.1.2-beta"},
  {name="AzerothFieldKit",title="Azeroth FieldKit",notes="Azeroth Survivors helper (/fieldkit): elite-only nameplates, boss frames with debuffs, health bar with shield, buffs and low health warning, crits, stats, gold and chest price, accessories, damage meter, chests on the minimap, lairs, camera.",version="0.3.3-review.1"},
- {name="AzerothHub",title="Azeroth Hub",notes="Lanceur central, profils d'addons et reglages integres. /azhub",version="0.7.0"},
+ {name="AzerothHub",title="Azeroth Hub",notes="Central launcher, addon profiles and integrated settings. /azhub",version="0.7.1"},
  {name="AzerothPilotBridge",title="AzerothPilotBridge",notes="Prototype 0.1 - passerelle optique de donnees AZS, aucune action de jeu.",version="0.1.0"},
  {name="AzerothStats",title="Azeroth Stats",notes="Historique local, statistiques et diagnostics Azeroth Survivors.",version="2.0.0-dev.13"},
  {name="AZS_DeathRecap",title="AZS Death Recap",notes="Detailed death analysis for Azeroth Survivors.",version="1.0.0"},

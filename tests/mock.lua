@@ -84,9 +84,19 @@ GetAddOnDependencies=function(key) return unpack(T.Row(key).deps) end
 IsAddOnLoaded=function(key) return T.Row(key).loaded and 1 or nil end
 EnableAddOn=function(key) T.writes=T.writes+1;if T.fail==key then error("injected failure") end;T.Row(key).enabled=true end
 DisableAddOn=function(key) T.writes=T.writes+1;if T.fail==key then error("injected failure") end;T.Row(key).enabled=false end
+function GetCVar(name)
+ if name=="azsLanguage" then return T.lang or "en" end
+ return nil
+end
+function GetLocale() return T.wowLocale or "enUS" end
 function T.Load()
  -- Inventory.lua is optional in unit tests (empty_catalogue / known load it explicitly).
- assert(loadfile("Core.lua"))();assert(loadfile("Adapters.lua"))();assert(loadfile("AdaptersKnown.lua"))()
+ assert(loadfile("Core.lua"))()
+ assert(loadfile("Locale.lua"))()
+ for _,code in ipairs({"pl","cs","de","pt","es","fr","ro","tr","ru","uk","zh","ja","ko"}) do
+  assert(loadfile("Locales/"..code..".lua"))()
+ end
+ assert(loadfile("Adapters.lua"))();assert(loadfile("AdaptersKnown.lua"))()
  assert(loadfile("Profiles.lua"))();assert(loadfile("Minimap.lua"))();assert(loadfile("Manager.lua"))();assert(loadfile("UI.lua"))()
  AzerothHub.Init()
 end

@@ -2,7 +2,7 @@ local H=AzerothHub
 function H.PrepareConfigs()
  for name,a in pairs(H.adapters) do
   if H.CanOpen(name) and a.prepare then
-   local ok,err=H.Call(a.prepare);if not ok then H.Say("Integration "..name.." : "..tostring(err)) end
+   local ok,err=H.Call(a.prepare);if not ok then H.Say(H.TF("Integration %s : %s",name,tostring(err))) end
   end
  end
  H.Scan()
@@ -30,7 +30,7 @@ function H.EnsureConfigProfiles()
  H.db.configProfiles=1
 end
 function H.UseConfigProfile(name)
- local p=H.db.profiles[name];if not p then return false,"Profil inconnu" end
+ local p=H.db.profiles[name];if not p then return false,H.T("Unknown profile") end
  H.EnsureConfigProfiles()
  if name~=H.profile then H.CaptureConfig(H.profile) end
  local ops,skipped={},0
@@ -53,14 +53,14 @@ function H.UseConfigProfile(name)
    local failed=0
    for i=table.getn(done),1,-1 do if not H.SetOption(done[i].o,done[i].before) then failed=failed+1 end end
    H.switchingConfig=nil
-   return false,"Profil non applique : "..tostring(err)..(failed>0 and " ; restauration incomplete" or " ; reglages precedents restaures")
+   return false,H.TF("Profile not applied: %s",tostring(err))..(failed>0 and (" ; "..H.T("incomplete restore")) or (" ; "..H.T("previous settings restored")))
   end
  end
  H.switchingConfig=nil;H.SelectProfile(name);H.db.activeProfile=name
  H.CaptureConfig(name)
- local note="Profil "..name.." applique."
- if skipped>0 then note=note.." Certains reglages sont indisponibles." end
- if H.needsReload then note=note.." Rechargement necessaire." end
+ local note=H.TF("Profile %s applied.",name)
+ if skipped>0 then note=note.." "..H.T("Some settings are unavailable.") end
+ if H.needsReload then note=note.." "..H.T("Reload required.") end
  H.Say(note)
  return true
 end

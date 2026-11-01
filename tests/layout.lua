@@ -20,13 +20,13 @@ H.selected="AzerothFieldKit";H.RefreshUI()
 local sawSettings,sawPlain=false,false
 for _,row in ipairs(ui.rows) do
  local text=row:IsShown() and row.title:GetText() or ""
- if string.find(text,"Avec reglages",1,true) then sawSettings=true end
- if string.find(text,"Charges sans schema",1,true) or string.find(text,"Catalogue",1,true) or string.find(text,"Sans reglages",1,true) then sawPlain=true end
+ if string.find(text,"With settings",1,true) then sawSettings=true end
+ if string.find(text,"Loaded without Hub schema",1,true) or string.find(text,"Catalog (not loaded)",1,true) then sawPlain=true end
 end
 assert(sawSettings and sawPlain)
 assert(ui.rows[1].addon==nil and ui.rows[2].addon~=nil)
 assert(ui.tabView:IsShown())
-assert(ui.options[1].option.header and string.find(ui.options[1].section:GetText(),"reglage",1,true))
+assert(ui.options[1].option.header and string.find(ui.options[1].section:GetText(),"setting",1,true))
 assert(ui.options[2].title.points[4]>ui.options[1].title.points[4])
 assert(string.find(ui.description:GetText(),H.profile,1,true))
 assert(string.find(ui.description:GetText(),">",1,true))
@@ -81,9 +81,9 @@ local huge="Configuration personnelle beaucoup trop longue"
 H.db.profiles[huge]=H.Clone(H.db.profiles[H.profile])
 assert(H.UseConfigProfile(huge));H.RefreshUI()
 local cap=ui.profile.caption:GetText()
-assert(string.len(cap)<string.len("Profil : "..huge) and string.find(cap,"...",1,true))
+assert(string.len(cap)<string.len("Profile: "..huge) and string.find(cap,"...",1,true))
 H.message=nil;H.needsReload=true;H.RefreshUI()
-assert(ui.reload:IsShown() and string.find(string.lower(ui.status:GetText()),"rechargement",1,true))
+assert(ui.reload:IsShown() and string.find(string.lower(ui.status:GetText()),"reload",1,true))
 H.needsReload=nil;H.RefreshUI();assert(not ui.reload:IsShown())
 ui.profile.points=nil;ui.manage.points=nil
 assert(H.SetAppearance("compact"));assert(ui.drag:IsShown() and ui.manage:IsShown())

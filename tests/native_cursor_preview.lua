@@ -14,7 +14,7 @@ assert(p:IsShown() and p.visual and p.visual:GetParent()==p)
 assert(p.visual.ring:GetWidth()==64 and A.preview==original)
 assert(A.db.enabled==false and not A.visual:IsShown())
 local function row(id)
- local terms={size="Diametre",opacity="Opacite"}
+ local terms={size="Marker diameter",opacity="Opacity"}
  ui.optionSearch:SetText(terms[id] or id)
  for _,r in ipairs(ui.options) do if r:IsShown() and r.option and r.option.id==id then return r end end
  error("Missing visible option "..id)

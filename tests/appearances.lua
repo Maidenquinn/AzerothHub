@@ -50,8 +50,8 @@ for _,mode in ipairs({"grimoire","atelier","compact","grimoire","compact","ateli
 end
 H.SetAppearance("compact")
 assert(ui.options[1].option.header)
-assert(string.find(ui.options[1].section:GetText(),"reglage",1,true))
-assert(not string.find(ui.options[1].section:GetText() or "","Cliquer",1,true))
+assert(string.find(ui.options[1].section:GetText(),"setting",1,true))
+assert(not string.find(ui.options[1].section:GetText() or "","Click",1,true))
 local n=table.getn(ui.filteredOptions);ui.options[1]:Click();assert(table.getn(ui.filteredOptions)==1)
 ui.options[1]:Click();assert(table.getn(ui.filteredOptions)==n)
 ui.manage:Click();assert(ui.addons:IsShown() and not ui.profiles:IsShown())

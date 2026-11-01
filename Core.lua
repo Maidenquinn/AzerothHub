@@ -1,13 +1,21 @@
 -- WoW 1.12 / native Lua 5.0. No disk reads, downloaded code, or arbitrary SavedVariables writes.
-AzerothHub={version="0.7.0",adapters={},rows={},byName={},page=1,optionPage=1,log={}}
+-- Keep any fields already registered by Locale.lua (LOCALES / RegisterLocale).
+AzerothHub=AzerothHub or {}
 local H=AzerothHub
+H.version="0.7.1"
+H.adapters=H.adapters or {}
+H.rows=H.rows or {}
+H.byName=H.byName or {}
+H.page=H.page or 1
+H.optionPage=H.optionPage or 1
+H.log=H.log or {}
 function H.Truth(v) return v==true or v==1 end
 function H.Number(v)
  if type(v)~="number" or v~=v or math.abs(v)>1e8 then return nil end
  return v
 end
 function H.Call(fn,...)
- if type(fn)~="function" then return false,"API indisponible" end
+ if type(fn)~="function" then return false,H.T and H.T("API unavailable") or "API unavailable" end
  return pcall(fn,unpack(arg))
 end
 function H.Say(s)
@@ -15,6 +23,8 @@ function H.Say(s)
  table.insert(H.log,tostring(s));if table.getn(H.log)>30 then table.remove(H.log,1) end
  if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cffffd36aAzeroth Hub|r : "..tostring(s)) end
 end
+local function T(key) return H.T and H.T(key) or key end
+local function TF(key,...) if H.TF then return H.TF(key,unpack(arg)) end;return key end
 function H.Metadata(name,key)
  local ok,v=H.Call(GetAddOnMetadata,name,key)
  return ok and type(v)=="string" and v or ""
@@ -182,15 +192,15 @@ function H.Valid(o,value)
  return false
 end
 function H.SetOption(o,value)
- if not H.Valid(o,value) then return false,"Valeur refusee" end
+ if not H.Valid(o,value) then return false,T("Value rejected") end
  local read,before=H.Call(o.get)
- if not read or not H.Valid(o,before) then return false,"Reglage non disponible dans cette version" end
+ if not read or not H.Valid(o,before) then return false,T("Setting unavailable in this version") end
  if read and before==value then return true end
  local ok,err=H.Call(o.set,value)
- if not ok then H.Say("Reglage non confirme : "..tostring(err));return false,err end
+ if not ok then H.Say(TF("Setting not confirmed: %s",err));return false,err end
  local checked,after=H.Call(o.get)
  local same=after==value or (H.Number(after) and H.Number(value) and math.abs(after-value)<.00001)
- if not checked or not same then return false,"Valeur non confirmee : "..(o.label or o.id) end
+ if not checked or not same then return false,TF("Setting not confirmed: %s",o.label or o.id) end
  if o.reload then H.needsReload=true end
  if H.CaptureConfig and H.db and not H.switchingConfig then H.CaptureConfig(H.profile) end
  return true
@@ -218,6 +228,8 @@ function H.Init()
   activeProfile=type(raw.activeProfile)=="string" and string.len(raw.activeProfile)<=48 and raw.activeProfile or nil,
   miniAngle=H.Number(raw.miniAngle) or 225}
  H.db.appearance=(raw.appearance=="atelier" or raw.appearance=="compact") and raw.appearance or "grimoire"
+ H.db.language=(type(raw.language)=="string" and (raw.language=="auto" or (H.IsKnownLanguage and H.IsKnownLanguage(raw.language))) and raw.language) or "auto"
+ if H.ApplyLocale then H.ApplyLocale() end
  if type(raw.profiles)=="table" then
   local count=0
   for name,p in pairs(raw.profiles) do
@@ -258,12 +270,12 @@ function H.Init()
 end
 function H.SaveProfile(name)
  name=string.gsub(string.gsub(name or "","^%s+",""),"%s+$","")
- if name=="" or string.len(name)>48 then return false,"Nom de profil : 1 a 48 caracteres" end
+ if name=="" or string.len(name)>48 then return false,T("Profile name: 1 to 48 characters") end
  if not H.Scan() then return false,H.error end
  local n=0;for _ in pairs(H.db.profiles) do n=n+1 end
- if not H.db.profiles[name] and n>=30 then return false,"Maximum 30 profils" end
+ if not H.db.profiles[name] and n>=30 then return false,T("Maximum 30 profiles") end
  H.db.profiles[name]=H.Snapshot();H.profile=name
- H.Say("Profil enregistre : "..name);return true
+ H.Say(TF("Profile saved: %s",name));return true
 end
 function H.SaveDraft(name)
  local draft=H.draft and H.Clone(H.draft.addons)
@@ -279,15 +291,15 @@ function H.SelectProfile(name)
  H.profile=name;H.draft=H.Clone(p);H.preview=nil;H.page=1
 end
 function H.Undo()
- if not H.db.undo then return false,"Aucun profil precedent" end
+ if not H.db.undo then return false,T("No previous profile") end
  local prior=H.Clone(H.db.undo)
  H.db.pending=nil;H.waitReload=false
  return H.Apply(prior)
 end
 function H.Plan(profile)
  if not H.Scan() then return nil,H.error end
- if type(profile)~="table" or type(profile.addons)~="table" then return nil,"Profil invalide" end
- if profile.settings~=nil and type(profile.settings)~="table" then return nil,"Reglages de profil invalides" end
+ if type(profile)~="table" or type(profile.addons)~="table" then return nil,T("Invalid profile") end
+ if profile.settings~=nil and type(profile.settings)~="table" then return nil,T("Invalid profile settings") end
  for name,values in pairs(profile.settings or {}) do if type(name)~="string" or type(values)~="table" then return nil,"Reglages de profil invalides" end end
  local target,changes,needed={},{},{}
  for _,r in ipairs(H.rows) do
@@ -297,9 +309,9 @@ function H.Plan(profile)
  end
  target.AzerothHub=true
  local function requireAddon(name,path)
-  local r=H.byName[name] or H.byLower[string.lower(name)];if not r then return false,"Dependance absente : "..name end
+  local r=H.byName[name] or H.byLower[string.lower(name)];if not r then return false,TF("Missing dependency: %s",name) end
   name=r.name
-  if path[name] then return false,"Cycle de dependances : "..name end
+  if path[name] then return false,TF("Dependency cycle: %s",name) end
   if needed[name] then return true end
   path[name]=true
   for _,dep in ipairs(r.dependencies) do
@@ -311,7 +323,7 @@ function H.Plan(profile)
  end
  for _,r in ipairs(H.rows) do if target[r.name] then local ok,err=requireAddon(r.name,{});if not ok then return nil,err end end end
  for _,r in ipairs(H.rows) do if target[r.name]~=r.enabled then
-  if not r.activationKnown then return nil,"Activation non exposee pour "..r.name.." : utiliser Options > AddOns." end
+  if not r.activationKnown then return nil,TF("Activation not exposed for %s: use Options > AddOns.",r.name) end
   table.insert(changes,{name=r.name,before=r.enabled,after=target[r.name]})
  end end
  local settingChanges={}
@@ -335,15 +347,15 @@ local function setEnabled(name,value)
  local ok,err=H.Call(fn,name)
  if not ok then return false,err end
  local success,_,_,_,enabled=H.Call(GetAddOnInfo,name)
- if not success or H.Truth(enabled)~=value then return false,"Etat non confirme : "..name end
+ if not success or H.Truth(enabled)~=value then return false,TF("State not confirmed: %s",name) end
  return true
 end
 function H.Apply(profile)
- if H.db.pending then return false,"Reglages en attente : recharger ou annuler d'abord" end
+ if H.db.pending then return false,T("Pending settings: reload or cancel first") end
  local plan,err=H.Plan(profile);if not plan then return false,err end
  for _,change in ipairs(plan.changes) do
   if (change.after and type(EnableAddOn)~="function") or (not change.after and type(DisableAddOn)~="function") then
-   return false,"Changement d'activation indisponible sur ce client"
+   return false,T("Activation change unavailable on this client")
   end
  end
  local undo=H.Snapshot();local done={}
@@ -369,7 +381,7 @@ function H.Apply(profile)
  H.pendingStarted=GetTime and GetTime() or 0
  -- Settings apply only after the next load, never silently later during this session.
  H.waitReload=H.db.pending~=nil;H.needsReload=H.needsReload or table.getn(done)>0 or H.waitReload
- H.Scan();H.Say(H.needsReload and "Profil prepare. Rechargement necessaire pour finaliser." or "Profil deja conforme : aucune modification necessaire.")
+ H.Scan();H.Say(H.needsReload and T("Profile prepared. Reload required to finish.") or T("Profile already matches: no changes needed."))
  return true
 end
 function H.ApplyPending()
@@ -382,10 +394,10 @@ function H.ApplyPending()
    local byId={};for _,o in ipairs(options) do byId[o.id]=o end
    for id,value in pairs(values) do
     local o=byId[id]
-    if not o or o.profile==false or not H.SetOption(o,value) then H.Say("Option de profil ignoree : "..name.." / "..id) end
+    if not o or o.profile==false or not H.SetOption(o,value) then H.Say(TF("Option ignored: %s / %s",name,id)) end
    end
    H.db.pending[name]=nil
-  elseif age>45 then H.Say("Reglages non appliques : "..name.." (integration indisponible)");H.db.pending[name]=nil end
+  elseif age>45 then H.Say(TF("Settings not applied: %s (integration unavailable)",name));H.db.pending[name]=nil end
  end
  if not next(H.db.pending) then H.db.pending=nil end
 end
@@ -394,12 +406,12 @@ function H.Open(name)
  if a and type(a.open)=="function" then
   local ok,err=H.Call(a.open);if not ok then H.Say(tostring(err)) end;return ok
  end
- H.Say("Aucun lanceur connu pour "..name);return false
+ H.Say(TF("No known launcher for %s",name));return false
 end
 function H.Diagnose()
  H.Scan()
  local captured=0;for _ in pairs(H.buttons or {}) do captured=captured+1 end
- H.Say("Version "..H.version.." | "..table.getn(H.rows).." addons | "..captured.." boutons regroupes")
+ H.Say(TF("Version %s | %s addons | %s gathered buttons",H.version,table.getn(H.rows),captured))
  H.Say("API catalogue="..type(GetNumAddOns)..", infos="..type(GetAddOnInfo)..", chargement="..type(IsAddOnLoaded))
  for i,r in ipairs(H.rows) do
   if i<=25 then
@@ -417,9 +429,9 @@ SLASH_AZEROTHHUB1="/azhub";SLASH_AZEROTHHUB2="/hub"
 SlashCmdList.AZEROTHHUB=function(msg)
  H.Init()
  if msg=="release" then H.db.gather=false;if H.ReleaseButtons then H.ReleaseButtons() end
- elseif msg=="scan" then H.Scan();H.Say(table.getn(H.rows).." addons detectes")
+ elseif msg=="scan" then H.Scan();H.Say(TF("%s addons detected",table.getn(H.rows)))
  elseif msg=="diag" then H.Diagnose()
- elseif msg=="cancel" then H.db.pending=nil;H.waitReload=false;H.Say("Reglages differes annules ; activations deja ecrites conservees.")
+ elseif msg=="cancel" then H.db.pending=nil;H.waitReload=false;H.Say(T("Deferred settings cancelled; activations already written are kept."))
  elseif H.ToggleUI then H.ToggleUI() end
 end
 local driver=CreateFrame("Frame","AzerothHubDriver",UIParent)

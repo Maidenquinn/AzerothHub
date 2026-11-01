@@ -103,7 +103,7 @@ Le **nom de clé** (`MonAddon`) doit être le **nom du dossier** de l’addon
 | Champ | Requis | Notes |
 |---|---|---|
 | `id` | oui | Identifiant stable (profils). |
-| `label` | recommandé | Texte affiché. |
+| `label` | recommandé | Texte affiché — **préférer l’anglais** (le Hub traduit via ses 14 locales). |
 | `kind` | oui | `check`, `slider` ou `choice`. |
 | `get` / `set` | oui | Lecture / écriture ; `set` doit être confirmé par un `get` cohérent. |
 | `section` | non | Groupe de lignes. |
@@ -127,7 +127,7 @@ Une intégration déjà écrite **dans** le Hub n’est **pas** écrasée par le
   puisse confirmer la valeur.
 - Testez avec Hub installé **et** sans Hub : le catalogue est inoffensif si Hub
   est absent (`AzerothHubCatalog = AzerothHubCatalog or {}`).
-- Après ajout : `/reload`, `/azhub scan`, puis vérifier **Avec réglages**.
+- Après ajout : `/reload`, `/azhub scan`, puis vérifier **With settings** / **Avec réglages**.
 
 ## Sans catalogue
 
@@ -135,7 +135,7 @@ Sans `AzerothHubCatalog`, votre addon peut quand même :
 
 - apparaître dans la liste s’il est dans `Inventory.lua` ou déjà chargé ;
 - s’ouvrir via un bouton minimap reconnu ou une intégration Hub existante ;
-- rester dans **Sans réglages** tant qu’aucun descripteur n’est publié.
+- rester dans **Loaded without Hub schema** / catalogue tant qu’aucun descripteur n’est publié.
 
 Pour demander l’ajout au catalogue d’inventaire distribué avec le Hub (visibilité
 même avant installation), contactez le mainteneur avec le nom de dossier, le

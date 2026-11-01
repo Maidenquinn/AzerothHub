@@ -1,0 +1,314 @@
+Appearance
+Profile
+Addon
+Profiles
+Manage profiles
+ADDONS
+Search for an addon...
+Original options
+View in game
+Categories
+Search for a setting...
+Reload
+Reload UI
+Cursor preview
+Real size: %s px
+Active in game.
+Inactive in game. Preview does not enable it.
+Enable in game
+Disable
+Back to Hub
+Your profiles
+This profile stores integrated addon settings.\nCollections, history and activation are not copied.
+New profile from current settings
+Name of the new profile...
+Copy this profile
+Reapply saved settings
+Hub appearance
+This choice is saved here. Changing profile does not change appearance.
+Grimoire: addons on the left, settings on the right
+Workshop: profiles stay in a column
+Compact: short window, addon in the header
+With settings
+Loaded without Hub schema
+Catalog (not loaded)
+addon
+addons
+setting
+settings
+Native window
+Not loaded
+No addon
+Choose an addon
+Choose
+No setting found.
+No Hub settings.
+Empty section.
+hidden
+N/A
+Section
+Click to show these settings.
+Click to fold this section.
+From %s to %s. Use - / + for fine adjustment.
+This setting may require a reload.
+Minimap buttons
+Shortcuts are in the launcher. Click to separate them.
+Each addon has its own button. Click to gather them.
+Minimap gathered
+Minimap separated
+Launcher
+Manager and profiles
+No shortcut available.\nDiagnostic: /azhub diag
+Click: launcher. Right-click: manager.
+Action unavailable
+Options unavailable
+Preview unavailable in this version.
+- active
+All sections
+Profile: %s
+Addon: %s
+Addons  %s  |  %s settings
+After reload
+Active
+Inactive
+result
+results
+all tabs
+original options
+Some settings are waiting for a reload.
+This name already exists. Choose a new name.
+Automatic
+Language
+Interface language
+Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window.
+Grimoire
+Workshop
+Compact
+API unavailable
+Value rejected
+Setting unavailable in this version
+Setting not confirmed: %s
+Profile saved: %s
+Profile name: 1 to 48 characters
+Maximum 30 profiles
+Unknown profile
+Profile not applied: %s
+previous settings restored
+incomplete restore
+Profile %s applied.
+Some settings are unavailable.
+Reload required.
+Invalid profile
+Invalid profile settings
+Missing dependency: %s
+Dependency cycle: %s
+Activation not exposed for %s: use Options > AddOns.
+State not confirmed: %s
+Pending settings: reload or cancel first
+Activation change unavailable on this client
+Profile prepared. Reload required to finish.
+Profile already matches: no changes needed.
+Deferred settings cancelled; activations already written are kept.
+No previous profile
+Addon not loaded or command unavailable
+No known launcher for %s
+Option ignored: %s / %s
+Settings not applied: %s (integration unavailable)
+Integration %s : %s
+%s addons detected
+Version %s | %s addons | %s gathered buttons
+General
+Display
+Visibility
+Animation
+Color
+Interface
+Announcements
+Modules
+Filters
+Run
+Combat
+Character
+Build tracker
+Level choices
+Sounds
+Windows
+Layout
+Coop
+Cooperation
+Book
+Reading
+Wishlist
+Contents
+Alerts
+Font
+Warnings
+Show the meter
+Lock the meter
+Show Max Hit
+Lock the window
+Spell icons
+Timestamp
+View
+Enlarged cursor
+Size
+Show the clock
+Lock position
+12-hour format
+Mode
+Clock
+Stopwatch
+Alarm
+Custom numbers
+Layout orientation
+Vertical
+Horizontal
+Global scale
+Active marker
+Class icon
+Animated halo
+Thickness
+Marker diameter
+Opacity
+Halo intensity
+Crosshair
+Center dot
+Icon size
+Crest class
+Preset color
+Class icon section
+Run tracking
+Kill pace
+Guardians
+Boss bars
+Kills and gold
+XP bar
+Loot list
+Damage meter
+This run
+Biggest crits
+Spell counters
+Build list
+Unit frames
+Action bar
+Buffs
+Flat chat
+Square minimap
+White outline
+Survivor combat text
+Survivor nameplates
+Nameplates on
+Names on every plate
+Click through
+Troops
+Elites
+Party
+Show dens
+Chat announcements
+Show the tracker
+Always
+Hide
+During the run
+Lock the tracker
+Collapse the tracker
+Tracker scale
+Choice brightness
+Statistics bar
+Lock positions
+Record sounds
+Scale
+Clear screen
+Chest tracking
+Co-op rescue
+Follow during the run
+Always show
+Hide tracker
+Show statistics bar
+Lock bar positions
+Play a sound on each record
+100% is the original size.
+100% is fully opaque.
+Shows the ring around the mouse. Independent of the class icon.
+Crest at the cursor. Independent of the marker.
+Gently varies halo intensity.
+Ring thickness.
+Ring diameter.
+Overall visibility.
+Strength of the light halo.
+Crosshair length. Zero = hidden.
+Dot radius. Zero = hidden.
+Crest size. Also enables the class icon.
+Which class to show. Also enables the icon.
+Applies a named color and clears a custom RGB color.
+Language of Azeroth Cursor options. Random: /azcursor random or Original options.
+Warrior
+Paladin
+Hunter
+Rogue
+Priest
+Shaman
+Mage
+Warlock
+Druid
+Enables the resized cursor during the run.
+Cursor size in pixels.
+Shows the clock.
+Prevents moving the window.
+Shows Max Hit during the run.
+Personal
+Group
+Custom floating numbers.
+Spell icons on numbers.
+Overall HUD size.
+Reload required after a module change.
+Shows the meter during the run.
+Prevents moving the meter.
+Shows tracked dens.
+Writes announcements to chat.
+Under the minimap: zone, clock, boss and guardians.
+Orb next to the tracker clock.
+Dens list or bar.
+Awake bosses and guardians with their debuffs.
+Kill, gold and chest price counters.
+Level and experience on a separate bar.
+Items dropped during the run.
+Sources, crits and healing.
+Figures for the current run.
+Best crit per ability.
+DoT, fears and totems above the buttons.
+Spells, ranks and jewelry.
+Flat player and target frames.
+Buttons 1 to 6 and = on one row.
+Buffs and debuffs above the frame.
+Chat without the original frame.
+Square minimap and tidy buttons.
+Outline around the element under the mouse.
+Survivor UI combat numbers. Off: game numbers.
+Survivor Plates around enemies.
+Hide or restore all plates.
+Otherwise: elites, guardians and bosses only.
+Click passes through the plate to the world.
+Plate size.
+Ordinary enemy plates.
+Elite plates.
+Guardian plates.
+Boss plates.
+Ally plates in co-op.
+Chooses when the tracker stays visible.
+Prevents moving the tracker.
+Shrinks the tracker to its title.
+0% dark, 100% bright.
+Shows the wishlist.
+Boss in the wishlist
+Boss warnings
+Guardians and waves
+Small notices
+Boss appears in 10 sec.
+Phase change
+Hero down (co-op)
+Book size
+Wishlist window
+Wishlist size
+Wishlist opacity
+Spell tracker
+Locked

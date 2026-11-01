@@ -76,7 +76,7 @@ function H.CreateMinimap()
  b:SetScript("OnEnter",function()
   if not GameTooltip then return end
   GameTooltip:SetOwner(this,"ANCHOR_LEFT");GameTooltip:SetText("Azeroth Hub")
-  GameTooltip:AddLine("Clic : lanceur. Clic droit : gestionnaire.",1,1,1);GameTooltip:Show()
+  GameTooltip:AddLine(H.T("Click: launcher. Right-click: manager."),1,1,1);GameTooltip:Show()
  end)
  b:SetScript("OnLeave",function() if GameTooltip then GameTooltip:Hide() end end)
  b:RegisterForDrag("LeftButton")

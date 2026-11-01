@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 - 2026-11-01
+
+- Interface Hub traduite dans les **14 langues** du jeu (en, pl, cs, de, pt, es, fr, ro, tr, ru, uk, zh, ja, ko).
+- Détection via CVar `azsLanguage` (fallback `GetLocale`), option Hub **Language** (Automatic + 14 langues).
+- Labels / sections / messages / schémas d’intégration Hub passent par `H.T` / `docs` Locales.
+
 ## 0.7.0 - 2026-11-01
 
 Première release publique du Hub élargi (catalogue SurvivorsForge / Desktop).

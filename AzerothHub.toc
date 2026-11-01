@@ -1,11 +1,25 @@
 ## Interface: 11200
 ## Title: Azeroth Hub
-## Notes: Lanceur central, profils d'addons et reglages integres. /azhub
+## Notes: Central launcher, addon profiles and integrated settings. /azhub
 ## Author: Maidenhead
-## Version: 0.7.0
+## Version: 0.7.1
 ## SavedVariables: AzerothHubDB
 Inventory.lua
 Core.lua
+Locale.lua
+Locales\pl.lua
+Locales\cs.lua
+Locales\de.lua
+Locales\pt.lua
+Locales\es.lua
+Locales\fr.lua
+Locales\ro.lua
+Locales\tr.lua
+Locales\ru.lua
+Locales\uk.lua
+Locales\zh.lua
+Locales\ja.lua
+Locales\ko.lua
 Adapters.lua
 AdaptersKnown.lua
 Profiles.lua

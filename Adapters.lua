@@ -2,14 +2,14 @@ local H=AzerothHub
 local function command(key,message)
  return function()
   local fn=SlashCmdList and SlashCmdList[key]
-  if type(fn)~="function" then error("Addon non charge ou commande indisponible") end
+  if type(fn)~="function" then error("Addon not loaded or command unavailable") end
   fn(message or "")
  end
 end
 H.Register("Azerloot",{open=command("AZERLOOT"),options=function() return {} end})
 -- Azerloot exposes a public book toggle even where its slash key changes.
 H.adapters.Azerloot.open=function()
- if type(Azerloot_Toggle)=="function" then Azerloot_Toggle() else error("Azerloot non charge") end
+ if type(Azerloot_Toggle)=="function" then Azerloot_Toggle() else error("Addon not loaded or command unavailable") end
 end
 H.Register("ASBuilder",{open=command("ASBUILDER")})
 H.Register("AZSSpellMeter",{open=command("AZSSPELLMETER")})
@@ -23,9 +23,9 @@ H.Register("AzerothClarity",{open=command("AZCLARITY"),options=function()
   return {id=id,label=label,kind="check",profile=false,get=get,set=function(v) if v then on() else off() end end}
  end
  return {
-  check("chests","Suivi des coffres",function() return a.chestsEnabled==true end,a.ChestsOn,a.ChestsOff),
-  check("allies","Secours coop",function() return a.alliesEnabled==true end,a.AlliesOn,a.AlliesOff),
-  check("clear","Ecran degage",function() return a.active==true end,function() if not a.active then a.Toggle() end end,function() if a.active then a.Hold(false);a.toggled=false;a.Refresh() end end),
+  check("chests","Chest tracking",function() return a.chestsEnabled==true end,a.ChestsOn,a.ChestsOff),
+  check("allies","Co-op rescue",function() return a.alliesEnabled==true end,a.AlliesOn,a.AlliesOff),
+  check("clear","Clear screen",function() return a.active==true end,function() if not a.active then a.Toggle() end end,function() if a.active then a.Hold(false);a.toggled=false;a.Refresh() end end),
  }
 end})
 H.Register("AzerothFieldKit",{open=command("FieldKit"),options=function()
@@ -65,18 +65,18 @@ H.Register("AzerothFieldKit",{open=command("FieldKit"),options=function()
 end})
 local function stat(key,label,kind,low,high,step,tip)
  return {id=key,label=label,kind=kind,min=low,max=high,step=step,tip=tip,
-  section=key=="recordSound" and "Sons" or "Affichage",
+  section=key=="recordSound" and "Sounds" or "Display",
   unit=(key=="scale" or key=="opacity") and "%" or nil,displayScale=(key=="scale" or key=="opacity") and 100 or nil,
   get=function() return AzerothStats.db.settings[key] end,
   set=function(v) AzerothStats.db.settings[key]=v;AzerothStats.ApplyUI() end}
 end
 H.Register("AzerothStats",{open=command("AZEROTHSTATS"),options=function()
  local a=getglobal("AzerothStats");if type(a)~="table" or not a.db or not a.db.settings then return {} end
- return {stat("bar","Barre de statistiques","check",nil,nil,nil,"Affiche la barre pendant la partie."),
-  stat("locked","Verrouiller les positions","check",nil,nil,nil,"Empeche de deplacer la barre."),
-  stat("recordSound","Sons des records","check",nil,nil,nil,"Joue un son a chaque record."),
-  stat("scale","Echelle","slider",.65,1.5,.05,"100 % correspond a la taille d'origine."),
-  stat("opacity","Opacite","slider",.45,1,.05,"100 % est entierement opaque.")}
+ return {stat("bar","Show statistics bar","check",nil,nil,nil,"Shows the meter during the run."),
+  stat("locked","Lock bar positions","check",nil,nil,nil,"Prevents moving the window."),
+  stat("recordSound","Record sounds","check",nil,nil,nil,"Play a sound on each record"),
+  stat("scale","Scale","slider",.65,1.5,.05,"100% is the original size."),
+  stat("opacity","Opacity","slider",.45,1,.05,"100% is fully opaque.")}
 end})
 H.Register("AzerothCursor",{open=command("AZEROTHCURSOR"),configure=command("AZEROTHCURSOR"),options=function()
  local a=getglobal("AzerothCursor");if type(a)~="table" or type(a.db)~="table" then return {} end
@@ -95,30 +95,30 @@ H.Register("AzerothCursor",{open=command("AZEROTHCURSOR"),configure=command("AZE
    set=function(v) a.db[key]=v;apply() end}
  end
  local out={
-  check("enabled","Repere actif","Visibilite","Affiche l'anneau autour de la souris. Independant de l'icone de classe."),
-  check("classIcon","Icone de classe","Visibilite","Blason de classe au curseur. Independant du repere."),
-  check("pulse","Halo anime","Animation","Fait varier doucement l'intensite du halo."),
-  slider("thickness","Epaisseur","Apparence",1,3,"Epaisseur de l'anneau.","px"),
-  slider("size","Diametre du repere","Apparence",24,160,"Diametre de l'anneau.","px"),
-  slider("opacity","Opacite","Apparence",20,100,"Visibilite globale.","%"),
-  slider("halo","Intensite du halo","Apparence",0,100,"Force du halo lumineux.","%"),
-  slider("crosshair","Reticule","Apparence",0,100,"Longueur du reticule. Zero = masque.","px"),
-  slider("dot","Point central","Apparence",0,24,"Rayon du point. Zero = masque.","px"),
-  {id="iconSize",label="Taille de l'icone",kind="slider",min=8,max=120,step=1,section="Icone de classe",unit="px",
-   tip="Taille du blason. Active aussi l'icone de classe.",
+  check("enabled","Active marker","Visibility","Shows the ring around the mouse. Independent of the class icon."),
+  check("classIcon","Class icon","Visibility","Crest at the cursor. Independent of the marker."),
+  check("pulse","Animated halo","Animation","Gently varies halo intensity."),
+  slider("thickness","Thickness","Appearance",1,3,"Ring thickness.","px"),
+  slider("size","Marker diameter","Appearance",24,160,"Ring diameter.","px"),
+  slider("opacity","Opacity","Appearance",20,100,"Overall visibility.","%"),
+  slider("halo","Halo intensity","Appearance",0,100,"Strength of the light halo.","%"),
+  slider("crosshair","Crosshair","Appearance",0,100,"Crosshair length. Zero = hidden.","px"),
+  slider("dot","Center dot","Appearance",0,24,"Dot radius. Zero = hidden.","px"),
+  {id="iconSize",label="Icon size",kind="slider",min=8,max=120,step=1,section="Class icon",unit="px",
+   tip="Crest size. Also enables the class icon.",
    get=function() return num("iconSize",28) end,
    set=function(v) a.db.iconSize=v;a.db.classIcon=true;apply() end},
  }
  local tokens={"WARRIOR","PALADIN","HUNTER","ROGUE","PRIEST","SHAMAN","MAGE","WARLOCK","DRUID"}
- local classLabels={"Guerrier","Paladin","Chasseur","Voleur","Pretre","Chaman","Mage","Demoniste","Druide"}
+ local classLabels={"Warrior","Paladin","Hunter","Rogue","Priest","Shaman","Mage","Warlock","Druid"}
  if type(a.L)=="function" then
   for i,token in ipairs(tokens) do
    local ok,s=H.Call(a.L,token)
    if ok and type(s)=="string" and s~="" then classLabels[i]=s end
   end
  end
- table.insert(out,{id="classIconToken",label="Classe du blason",kind="choice",section="Icone de classe",values=classLabels,
-  tip="Quelle classe afficher. Active aussi l'icone.",
+ table.insert(out,{id="classIconToken",label="Crest class",kind="choice",section="Class icon",values=classLabels,
+  tip="Which class to show. Also enables the icon.",
   get=function()
    local tok=a.ClassIconToken and a.ClassIconToken() or a.db.classIconToken
    for i,t in ipairs(tokens) do if tok==t then return i end end
@@ -128,18 +128,18 @@ H.Register("AzerothCursor",{open=command("AZEROTHCURSOR"),configure=command("AZE
    a.db.classIconToken=tokens[i];a.db.classIcon=true;apply()
   end})
  local colorLabels={}
- for i,c in ipairs(a.colors or {}) do colorLabels[i]=c[1] or ("Couleur "..i) end
+ for i,c in ipairs(a.colors or {}) do colorLabels[i]=c[1] or ("Color "..i) end
  if table.getn(colorLabels)>0 then
-  table.insert(out,{id="color",label="Couleur predefinie",kind="choice",section="Couleur",values=colorLabels,
-   tip="Applique une couleur nommee et efface une couleur RVB personnalisee.",
+  table.insert(out,{id="color",label="Preset color",kind="choice",section="Color",values=colorLabels,
+   tip="Applies a named color and clears a custom RGB color.",
    get=function()
     local i=tonumber(a.db.color) or 1
     if i<1 then i=1 end;if i>table.getn(colorLabels) then i=1 end;return i
    end,
    set=function(i) a.db.color=i;a.db.rgb=nil;apply() end})
  end
- table.insert(out,{id="language",label="Langue",kind="choice",section="Interface",values={"Francais","English"},
-  tip="Langue des options Azeroth Cursor. Aleatoire : /azcursor random ou Options d'origine.",
+ table.insert(out,{id="language",label="Language",kind="choice",section="Interface",values={"Francais","English"},
+  tip="Language of Azeroth Cursor options. Random: /azcursor random or Original options.",
   get=function() return a.db.language=="en" and 2 or 1 end,
   set=function(i) a.db.language=(i==2) and "en" or "fr";apply() end})
  return out
@@ -215,15 +215,15 @@ H.adapters.ASBuilder.options=function()
   if ASBuilder.ApplyTrackerLayout then ASBuilder.ApplyTrackerLayout() end
   if ASBuilder.RefreshTracker then ASBuilder.RefreshTracker() end
  end
- local out={stringChoice(t,"mode","Afficher le suivi",{"run","always","hidden"},{"Pendant la partie","Toujours","Masquer"},"run",refresh),
-  field(t,"locked","Verrouiller le suivi","check",false,nil,nil,nil,refresh),
-  field(t,"collapsed","Replier le suivi","check",false,nil,nil,nil,refresh),
-  field(t,"scale","Echelle du suivi","slider",1,.5,2,.05,refresh),
-  field(ASBuilderDB,"light","Luminosite des choix","slider",80,0,100,5,refresh)}
- local tips={mode="Choisit quand le suivi reste visible.",locked="Empeche de deplacer le suivi.",
-  collapsed="Reduit le suivi a son titre.",scale="100 % correspond a la taille d'origine.",light="0 % sombre, 100 % clair."}
+ local out={stringChoice(t,"mode","Show the tracker",{"run","always","hidden"},{"During the run","Always","Hide"},"run",refresh),
+  field(t,"locked","Lock the tracker","check",false,nil,nil,nil,refresh),
+  field(t,"collapsed","Collapse the tracker","check",false,nil,nil,nil,refresh),
+  field(t,"scale","Tracker scale","slider",1,.5,2,.05,refresh),
+  field(ASBuilderDB,"light","Choice brightness","slider",80,0,100,5,refresh)}
+ local tips={mode="Chooses when the tracker stays visible.",locked="Prevents moving the tracker.",
+  collapsed="Shrinks the tracker to its title.",scale="100% is the original size.",light="0% dark, 100% bright."}
  for _,o in ipairs(out) do
-  o.section=o.id=="light" and "Choix de niveau" or "Suivi du build"
+  o.section=o.id=="light" and "Level choices" or "Build tracker"
   o.tip=tips[o.id]
   if o.id=="scale" then o.unit="%";o.displayScale=100 elseif o.id=="light" then o.unit="%" end
  end
@@ -233,9 +233,9 @@ H.adapters.AZSSpellMeter.options=function()
  if type(AZSSpellMeterDB)~="table" or not H.CanOpen("AZSSpellMeter") then return {} end
  local d=AZSSpellMeterDB
  return {
-  {id="shown",label="Afficher le compteur",kind="check",section="Affichage",tip="Montre le compteur pendant la partie.",
+  {id="shown",label="Show the meter",kind="check",section="Display",tip="Shows the meter during the run.",
    get=function() return d.shown~=false end,set=function(v) SlashCmdList.AZSSPELLMETER(v and "show" or "hide") end},
-  {id="locked",label="Verrouiller le compteur",kind="check",section="Affichage",tip="Empeche de deplacer la fenetre.",
+  {id="locked",label="Lock the meter",kind="check",section="Display",tip="Prevents moving the window.",
    get=function() return d.locked and true or false end,
    set=function(v) if (d.locked and true or false)~=v then SlashCmdList.AZSSPELLMETER("lock") end end},
  }
@@ -248,9 +248,9 @@ H.Register("AZSEliteTracker",{open=command("AZSELITE"),available=registered("AZS
   o.set=function(v) if o.get()~=v then SlashCmdList.AZSELITE(cmd or (v and "show" or "hide")) end end
   return o
  end
- local shown,locked,alert=toggle("shown","Afficher les antres",nil,true),toggle("locked","Verrouiller la fenetre","lock",false),toggle("alert","Annonces dans le chat","alert",true)
- shown.section,locked.section,alert.section="Affichage","Affichage","Annonces"
- shown.tip,locked.tip,alert.tip="Montre les antres suivis.","Empeche de deplacer la fenetre.","Ecrit les annonces dans le chat."
+ local shown,locked,alert=toggle("shown","Show dens",nil,true),toggle("locked","Lock the window","lock",false),toggle("alert","Chat announcements","alert",true)
+ shown.section,locked.section,alert.section="Display","Display","Announcements"
+ shown.tip,locked.tip,alert.tip="Shows tracked dens.","Prevents moving the window.","Writes announcements to chat."
  return {shown,locked,alert}
 end})
 
@@ -282,43 +282,43 @@ H.Register("SurvivorUI",{
  open=function()
   if type(SurvivorUI_ToggleOptions)=="function" then SurvivorUI_ToggleOptions()
   elseif type(SlashCmdList)=="table" and type(SlashCmdList.SURVIVORUI)=="function" then SlashCmdList.SURVIVORUI("opt")
-  else error("Survivor UI non charge") end
+  else error("Addon not loaded or command unavailable") end
  end,
  configure=function()
   if type(SurvivorUI_ToggleOptions)=="function" then SurvivorUI_ToggleOptions()
   elseif type(SlashCmdList)=="table" and type(SlashCmdList.SURVIVORUI)=="function" then SlashCmdList.SURVIVORUI("opt")
-  else error("Survivor UI non charge") end
+  else error("Addon not loaded or command unavailable") end
  end,
  options=function()
   if type(SurvivorUIDB)~="table" and type(SurvivorUI_ToggleOptions)~="function" then return {} end
   SurvivorUIDB=SurvivorUIDB or {}
   local out={
-   survivorCheck("tracker","Suivi de run","Partie","Sous la minimap : zone, horloge, boss et gardiens.",survivorOn("tracker"),survivorFlip("SurvivorUI_ToggleTracker",survivorOn("tracker"))),
-   survivorCheck("pace","Rythme de kills","Partie","Orbe a cote de l'horloge du suivi.",survivorOn("pace"),survivorFlip("SurvivorUI_TogglePace",survivorOn("pace"))),
-   survivorCheck("guardians","Gardiens","Partie","Liste ou barre des antres.",survivorOn("guardians"),survivorFlip("SurvivorUI_ToggleGuardians",survivorOn("guardians"))),
-   survivorCheck("bossBars","Barres de boss","Partie","Boss et gardiens eveilles avec leurs debuffs.",survivorOn("bossBars"),survivorFlip("SurvivorUI_BossBars",survivorOn("bossBars"))),
-   survivorCheck("tally","Kills et or","Partie","Compteurs de kills, or et prix du coffre.",survivorOn("tally"),survivorFlip("SurvivorUI_Tally",survivorOn("tally"))),
-   survivorCheck("xpBar","Barre d'XP","Partie","Niveau et experience sur une barre separee.",survivorOnly("xpBar"),survivorFlip("SurvivorUI_ToggleXpBar",survivorOnly("xpBar"))),
-   survivorCheck("lootLog","Liste de butin","Partie","Objets tombes pendant la run.",survivorOn("lootLog"),survivorFlip("SurvivorUI_ToggleLoot",survivorOn("lootLog"))),
-   survivorCheck("meter","Compteur de degats","Combat","Sources, critiques et soins.",survivorOn("meter"),survivorFlip("SurvivorUI_ToggleMeter",survivorOn("meter"))),
-   survivorCheck("runPanel","Cette run","Combat","Chiffres de la run en cours.",survivorOn("runPanel"),survivorFlip("SurvivorUI_ToggleRun",survivorOn("runPanel"))),
-   survivorCheck("critBox","Plus gros critiques","Combat","Meilleur critique par capacite.",survivorOnly("critBox"),survivorFlip("SurvivorUI_ToggleCrits",survivorOnly("critBox"))),
-   survivorCheck("counters","Compteurs de sorts","Combat","DoT, peurs et totems au-dessus des boutons.",survivorOn("counters"),function(v) if survivorOn("counters")()~=v then SurvivorUIDB.counters=v and true or false end end),
-   survivorCheck("buildList","Liste de build","Personnage","Sorts, rangs et bijoux.",survivorOn("buildList"),survivorFlip("SurvivorUI_ToggleBuild",survivorOn("buildList"))),
-   survivorCheck("unitFrames","Cadres d'unites","Interface","Cadres joueur et cible plats.",survivorFeature("unitFrames"),survivorFeatureSet("unitFrames"),true),
-   survivorCheck("actionBar","Barre d'actions","Interface","Boutons 1 a 6 et = sur une ligne.",survivorFeature("actionBar"),survivorFeatureSet("actionBar"),true),
-   survivorCheck("buffs","Ameliorations","Interface","Buffs et debuffs au-dessus du cadre.",survivorFeature("buffs"),survivorFeatureSet("buffs"),true),
-   survivorCheck("chat","Chat plat","Interface","Chat sans cadre d'origine.",survivorFeature("chat"),survivorFeatureSet("chat"),true),
-   survivorCheck("minimap","Minimap carree","Interface","Minimap carree et boutons ranges.",survivorFeature("minimap"),survivorFeatureSet("minimap"),true),
-   survivorCheck("hover","Contour blanc","Interface","Contour autour de l'element sous la souris.",survivorOn("hover"),survivorFlip("SurvivorUI_ToggleHover",survivorOn("hover"))),
+   survivorCheck("tracker","Run tracking","Run","Under the minimap: zone, clock, boss and guardians.",survivorOn("tracker"),survivorFlip("SurvivorUI_ToggleTracker",survivorOn("tracker"))),
+   survivorCheck("pace","Kill pace","Run","Orb next to the tracker clock.",survivorOn("pace"),survivorFlip("SurvivorUI_TogglePace",survivorOn("pace"))),
+   survivorCheck("guardians","Guardians","Run","Dens list or bar.",survivorOn("guardians"),survivorFlip("SurvivorUI_ToggleGuardians",survivorOn("guardians"))),
+   survivorCheck("bossBars","Boss bars","Run","Awake bosses and guardians with their debuffs.",survivorOn("bossBars"),survivorFlip("SurvivorUI_BossBars",survivorOn("bossBars"))),
+   survivorCheck("tally","Kills and gold","Run","Kill, gold and chest price counters.",survivorOn("tally"),survivorFlip("SurvivorUI_Tally",survivorOn("tally"))),
+   survivorCheck("xpBar","XP bar","Run","Level and experience on a separate bar.",survivorOnly("xpBar"),survivorFlip("SurvivorUI_ToggleXpBar",survivorOnly("xpBar"))),
+   survivorCheck("lootLog","Loot list","Run","Items dropped during the run.",survivorOn("lootLog"),survivorFlip("SurvivorUI_ToggleLoot",survivorOn("lootLog"))),
+   survivorCheck("meter","Damage meter","Combat","Sources, crits and healing.",survivorOn("meter"),survivorFlip("SurvivorUI_ToggleMeter",survivorOn("meter"))),
+   survivorCheck("runPanel","This run","Combat","Figures for the current run.",survivorOn("runPanel"),survivorFlip("SurvivorUI_ToggleRun",survivorOn("runPanel"))),
+   survivorCheck("critBox","Biggest crits","Combat","Best crit per ability.",survivorOnly("critBox"),survivorFlip("SurvivorUI_ToggleCrits",survivorOnly("critBox"))),
+   survivorCheck("counters","Spell counters","Combat","DoT, fears and totems above the buttons.",survivorOn("counters"),function(v) if survivorOn("counters")()~=v then SurvivorUIDB.counters=v and true or false end end),
+   survivorCheck("buildList","Build list","Character","Spells, ranks and jewelry.",survivorOn("buildList"),survivorFlip("SurvivorUI_ToggleBuild",survivorOn("buildList"))),
+   survivorCheck("unitFrames","Unit frames","Interface","Flat player and target frames.",survivorFeature("unitFrames"),survivorFeatureSet("unitFrames"),true),
+   survivorCheck("actionBar","Action bar","Interface","Buttons 1 to 6 and = on one row.",survivorFeature("actionBar"),survivorFeatureSet("actionBar"),true),
+   survivorCheck("buffs","Buffs","Interface","Buffs and debuffs above the frame.",survivorFeature("buffs"),survivorFeatureSet("buffs"),true),
+   survivorCheck("chat","Flat chat","Interface","Chat without the original frame.",survivorFeature("chat"),survivorFeatureSet("chat"),true),
+   survivorCheck("minimap","Square minimap","Interface","Square minimap and tidy buttons.",survivorFeature("minimap"),survivorFeatureSet("minimap"),true),
+   survivorCheck("hover","White outline","Interface","Outline around the element under the mouse.",survivorOn("hover"),survivorFlip("SurvivorUI_ToggleHover",survivorOn("hover"))),
   }
   if type(SurvivorUI_DamageMode)=="function" and type(SurvivorUI_SetDamageMode)=="function" then
-   table.insert(out,1,survivorCheck("combatText","Texte de combat Survivor","Combat","Nombres de combat de Survivor UI. Desactive : ceux du jeu.",
+   table.insert(out,1,survivorCheck("combatText","Survivor combat text","Combat","Survivor UI combat numbers. Off: game numbers.",
     function() return SurvivorUI_DamageMode()=="survivor" end,
     function(v) SurvivorUI_SetDamageMode(v and "survivor" or "game") end))
   end
   if type(SlashCmdList)=="table" and type(SlashCmdList.SURVIVORPLATES)=="function" then
-   table.insert(out,survivorCheck("plates","Nameplates Survivor","Interface","Plaques de Survivor Plates autour des ennemis.",
+   table.insert(out,survivorCheck("plates","Survivor nameplates","Interface","Survivor Plates around enemies.",
     function() return not (SurvivorPlatesDB and SurvivorPlatesDB.hidden) end,
     function(v) local hidden=SurvivorPlatesDB and SurvivorPlatesDB.hidden;if (not hidden)~=v then SlashCmdList.SURVIVORPLATES("none") end end))
   end
@@ -338,24 +338,47 @@ H.Register("SurvivorPlates",{
    return function(v) if shown(kind)()~=v then SlashCmdList.SURVIVORPLATES(kind=="elite" and "elites" or kind=="guardian" and "guardians" or kind=="boss" and "bosses" or kind) end end
   end
   return {
-   survivorCheck("hidden","Nameplates actives","Affichage","Masque ou rappelle toutes les plaques.",
+   survivorCheck("hidden","Nameplates on","Display","Hide or restore all plates.",
     function() return not (SurvivorPlatesDB and SurvivorPlatesDB.hidden) end,
     function(v) local on=not (SurvivorPlatesDB and SurvivorPlatesDB.hidden);if on~=v then SlashCmdList.SURVIVORPLATES("none") end end),
-   survivorCheck("names","Noms sur chaque plaque","Affichage","Sinon : elites, gardiens et boss seulement.",
+   survivorCheck("names","Names on every plate","Display","Otherwise: elites, guardians and bosses only.",
     function() return SurvivorPlatesDB and SurvivorPlatesDB.names and true or false end,
     function(v) if (SurvivorPlatesDB.names and true or false)~=v then SlashCmdList.SURVIVORPLATES("names") end end),
-   survivorCheck("click","Clic a travers","Affichage","Le clic traverse la plaque vers le monde.",
+   survivorCheck("click","Click through","Display","Click passes through the plate to the world.",
     function() return type(SurvivorPlates_ClickThrough)=="function" and SurvivorPlates_ClickThrough() end,
     function(v) if (type(SurvivorPlates_ClickThrough)=="function" and SurvivorPlates_ClickThrough())~=v then SlashCmdList.SURVIVORPLATES("click") end end),
-   {id="scale",label="Echelle",kind="slider",min=.5,max=2,step=.05,section="Affichage",unit="%",displayScale=100,
-    tip="Taille des plaques.",
+   {id="scale",label="Scale",kind="slider",min=.5,max=2,step=.05,section="Display",unit="%",displayScale=100,
+    tip="Plate size.",
     get=function() return type(SurvivorPlates_GetScale)=="function" and SurvivorPlates_GetScale() or 1 end,
     set=function(v) if type(SurvivorPlates_SetScale)=="function" then SurvivorPlates_SetScale(v) end end},
-   survivorCheck("normal","Troupes","Filtres","Plaques des ennemis ordinaires.",shown("normal"),flipKind("normal")),
-   survivorCheck("elite","Elites","Filtres","Plaques des elites.",shown("elite"),flipKind("elite")),
-   survivorCheck("guardian","Gardiens","Filtres","Plaques des gardiens.",shown("guardian"),flipKind("guardian")),
-   survivorCheck("boss","Boss","Filtres","Plaques des boss.",shown("boss"),flipKind("boss")),
-   survivorCheck("party","Groupe","Filtres","Plaques des allies en coop.",shown("party"),flipKind("party")),
+   survivorCheck("normal","Troops","Filters","Ordinary enemy plates.",shown("normal"),flipKind("normal")),
+   survivorCheck("elite","Elites","Filters","Elite plates.",shown("elite"),flipKind("elite")),
+   survivorCheck("guardian","Guardians","Filters","Guardian plates.",shown("guardian"),flipKind("guardian")),
+   survivorCheck("boss","Boss","Filters","Boss plates.",shown("boss"),flipKind("boss")),
+   survivorCheck("party","Group","Filters","Ally plates in co-op.",shown("party"),flipKind("party")),
+  }
+ end
+})
+
+-- Hub UI language (auto = follow azsLanguage / game).
+H.Register("AzerothHub",{
+ open=function() if H.ToggleUI then H.ToggleUI() end end,
+ available=function() return true end,
+ options=function()
+  local codes,values=H.LanguageChoices()
+  return {
+   {id="language",label="Language",kind="choice",section="Interface",values=values,
+    tip="Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window.",
+    get=function()
+     local cur=H.db and H.db.language or "auto"
+     for i,c in ipairs(codes) do if c==cur then return i end end
+     return 1
+    end,
+    set=function(i)
+     H.db.language=codes[i] or "auto"
+     if H.ApplyLocale then H.ApplyLocale() end
+     H.needsReload=true
+    end,reload=true},
   }
  end
 })

@@ -6,7 +6,7 @@ local H=AzerothHub
 local function command(key,message)
  return function()
   local fn=SlashCmdList and SlashCmdList[key]
-  if type(fn)~="function" then error("Addon non charge ou commande indisponible") end
+  if type(fn)~="function" then error("Addon not loaded or command unavailable") end
   fn(message or "")
  end
 end
@@ -34,7 +34,7 @@ do
  local function blackwellOpen()
   if type(SlashCmdList.BLACKWELLUI)=="function" then SlashCmdList.BLACKWELLUI("")
   elseif type(SlashCmdList.BLACKWALLUI)=="function" then SlashCmdList.BLACKWALLUI("")
-  else error("BlackwellUI non charge") end
+  else error("Addon not loaded or command unavailable") end
  end
  H.Register("BlackwellUI",{available=blackwellReady,open=blackwellOpen,configure=blackwellOpen})
 end
@@ -62,10 +62,10 @@ bind("BigCursor","BIGCURSOR",nil,function()
  if type(BigCursorDB)~="table" then return {} end
  local function apply() end
  return {
-  {id="enabled",label="Curseur agrandi",kind="check",section="Affichage",tip="Active le curseur redimensionne pendant la run.",
+  {id="enabled",label="Enlarged cursor",kind="check",section="Display",tip="Enables the resized cursor during the run.",
    get=function() return BigCursorDB.enabled~=false end,
    set=function(v) BigCursorDB.enabled=v and true or false;if SlashCmdList.BIGCURSOR then SlashCmdList.BIGCURSOR(v and "on" or "off") end end},
-  {id="size",label="Taille",kind="slider",min=24,max=512,step=2,section="Affichage",unit="px",tip="Taille du curseur en pixels.",
+  {id="size",label="Size",kind="slider",min=24,max=512,step=2,section="Display",unit="px",tip="Cursor size in pixels.",
    get=function() return tonumber(BigCursorDB.size) or 46 end,
    set=function(v) BigCursorDB.size=v;if SlashCmdList.BIGCURSOR then SlashCmdList.BIGCURSOR("size "..tostring(v)) end end},
  }
@@ -76,27 +76,27 @@ bind("LocalClock","LOCALCLOCK",nil,function()
  if type(LocalClockDB)~="table" then return {} end
  local d=LocalClockDB
  local modes={"clock","stopwatch","alarm"}
- local modeLabels={"Horloge","Chronometre","Alarme"}
+ local modeLabels={"Clock","Stopwatch","Alarm"}
  return {
-  {id="shown",label="Afficher l'horloge",kind="check",section="Affichage",
+  {id="shown",label="Show the clock",kind="check",section="Display",
    get=function() return d.shown~=false end,
    set=function(v)
     d.shown=v and true or false
     if SlashCmdList.LOCALCLOCK then SlashCmdList.LOCALCLOCK(v and "show" or "hide") end
    end},
-  {id="locked",label="Verrouiller la position",kind="check",section="Affichage",
+  {id="locked",label="Lock position",kind="check",section="Display",
    get=function() return d.locked and true or false end,
    set=function(v)
     d.locked=v and true or false
     if SlashCmdList.LOCALCLOCK then SlashCmdList.LOCALCLOCK(v and "lock" or "unlock") end
    end},
-  {id="use12Hour",label="Format 12 heures",kind="check",section="Affichage",
+  {id="use12Hour",label="12-hour format",kind="check",section="Display",
    get=function() return d.use12Hour and true or false end,
    set=function(v)
     d.use12Hour=v and true or false
     if SlashCmdList.LOCALCLOCK then SlashCmdList.LOCALCLOCK(v and "12" or "24") end
    end},
-  {id="displayMode",label="Mode",kind="choice",section="Affichage",values=modeLabels,
+  {id="displayMode",label="Mode",kind="choice",section="Display",values=modeLabels,
    get=function()
     local m=d.displayMode or "clock"
     for i,k in ipairs(modes) do if m==k then return i end end
@@ -120,21 +120,21 @@ bind("AZSMaxHit","AZSMAXHIT",nil,function()
  if type(AZSMaxHitDB)~="table" then return {} end
  local d=AZSMaxHitDB
  local views={"me","party"}
- local viewLabels={"Perso","Groupe"}
+ local viewLabels={"Personal","Group"}
  return {
-  {id="shown",label="Afficher Max Hit",kind="check",section="Affichage",
+  {id="shown",label="Show Max Hit",kind="check",section="Display",
    get=function() return d.shown~=false end,
    set=function(v) if (d.shown~=false)~=v and SlashCmdList.AZSMAXHIT then SlashCmdList.AZSMAXHIT(v and "show" or "hide") end end},
-  {id="locked",label="Verrouiller la fenetre",kind="check",section="Affichage",
+  {id="locked",label="Lock the window",kind="check",section="Display",
    get=function() return d.locked and true or false end,
    set=function(v) if (d.locked and true or false)~=v and SlashCmdList.AZSMAXHIT then SlashCmdList.AZSMAXHIT("lock") end end},
-  {id="showIcons",label="Icones des sorts",kind="check",section="Affichage",
+  {id="showIcons",label="Spell icons",kind="check",section="Display",
    get=function() return d.showIcons~=false end,
    set=function(v) d.showIcons=v and true or false;if SlashCmdList.AZSMAXHIT then SlashCmdList.AZSMAXHIT("refresh") end end},
-  {id="showAt",label="Horodatage",kind="check",section="Affichage",
+  {id="showAt",label="Timestamp",kind="check",section="Display",
    get=function() return d.showAt and true or false end,
    set=function(v) d.showAt=v and true or false;if SlashCmdList.AZSMAXHIT then SlashCmdList.AZSMAXHIT("refresh") end end},
-  {id="view",label="Vue",kind="choice",section="Affichage",values=viewLabels,
+  {id="view",label="View",kind="choice",section="Display",values=viewLabels,
    get=function()
     local v=d.view or "me"
     for i,k in ipairs(views) do if v==k then return i end end
@@ -157,16 +157,16 @@ bind("VulchansCombatText","VCT",nil,function()
  if type(VCTDB)~="table" then return {} end
  local d=VCTDB
  return {
-  {id="enabled",label="Nombres personnalises",kind="check",section="Affichage",
+  {id="enabled",label="Custom numbers",kind="check",section="Display",
    get=function() return d.enabled~=false end,
    set=function(v) if SlashCmdList.VCT then SlashCmdList.VCT(v and "on" or "off") else d.enabled=v and true or false end end},
-  {id="showIcons",label="Icones de sorts",kind="check",section="Affichage",
+  {id="showIcons",label="Spell icons",kind="check",section="Display",
    get=function() return d.showIcons~=false end,
    set=function(v) if SlashCmdList.VCT then SlashCmdList.VCT(v and "icons on" or "icons off") else d.showIcons=v and true or false end end},
-  {id="scale",label="Echelle",kind="slider",min=50,max=200,step=5,section="Affichage",unit="%",
+  {id="scale",label="Scale",kind="slider",min=50,max=200,step=5,section="Display",unit="%",
    get=function() return tonumber(d.scale) or 100 end,
    set=function(v) if SlashCmdList.VCT then SlashCmdList.VCT("scale "..tostring(v)) else d.scale=v end end},
-  {id="layout",label="Disposition",kind="choice",section="Affichage",values={"Verticale","Horizontale"},
+  {id="layout",label="Layout",kind="choice",section="Display",values={"Vertical","Horizontal"},
    get=function() return (d.layout=="horizontal") and 2 or 1 end,
    set=function(i) if SlashCmdList.VCT then SlashCmdList.VCT(i==2 and "horizontal" or "vertical") else d.layout=(i==2 and "horizontal" or "vertical") end end},
  }
@@ -181,8 +181,8 @@ H.Register("AetherHUD",{
   local A=getglobal("AetherHUD")
   if type(A)~="table" or type(A.db)~="table" then return {} end
   local out={
-   {id="scale",label="Echelle globale",kind="slider",min=.5,max=2,step=.05,section="Affichage",unit="%",displayScale=100,
-    tip="Taille d'ensemble du HUD.",
+   {id="scale",label="Global scale",kind="slider",min=.5,max=2,step=.05,section="Display",unit="%",displayScale=100,
+    tip="Overall HUD size.",
     get=function() return tonumber(A.db.scale) or 1 end,
     set=function(v) A.db.scale=v;if A.PlaceAll then A.PlaceAll() elseif SlashCmdList.AETHERHUD then SlashCmdList.AETHERHUD("scale "..tostring(v)) end end},
   }
@@ -191,7 +191,7 @@ H.Register("AetherHUD",{
     if type(m)=="table" and type(m.key)=="string" then
      local key=m.key
      table.insert(out,{id="mod_"..key,label=m.label or key,kind="check",section="Modules",reload=true,
-      tip="Rechargement necessaire apres un changement de module.",
+      tip="Reload required after a module change.",
       get=function() return A.db.modules and A.db.modules[key] and true or false end,
       set=function(v) if type(A.db.modules)~="table" then A.db.modules={} end;A.db.modules[key]=v and true or false end})
     end
