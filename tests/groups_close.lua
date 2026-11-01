@@ -29,4 +29,15 @@ ui.original:Click()
 assert(ui.openedNative=="AzerothFieldKit" and ui.returnBar:IsShown() and FieldKitUI.frame:IsShown())
 ui.returnButton:Click()
 assert(not FieldKitUI.frame:IsShown() and ui:IsShown() and not ui.openedNative)
-print("PASS: foldable addon groups, Hub language first, native close on return")
+-- Header language dropdown lists all game languages.
+assert(ui.langHeader and ui.langMenu)
+ui.langHeader:Click()
+assert(ui.langMenu:IsShown())
+local langs=0
+for _,b in ipairs(ui.langRows) do if b:IsShown() and b.lang then langs=langs+1 end end
+assert(langs==15)
+local fr
+for _,b in ipairs(ui.langRows) do if b.lang=="fr" then fr=b;break end end
+assert(fr);fr:Click()
+assert(H.db.language=="fr" and not ui.langMenu:IsShown())
+print("PASS: foldable addon groups, Hub language first, native close on return, header language dropdown")

@@ -52,11 +52,13 @@ for _,mode in ipairs({"grimoire","atelier","compact"}) do
  if ui.drag:IsShown() then
   assert(right(ui.drag)<=left(ui.styleButton))
   assert(not overlaps(ui.drag,ui.styleButton) and not overlaps(ui.drag,ui.close))
-  if ui.profile:IsShown() then assert(right(ui.profile)<=left(ui.drag)) end
-  if ui.manage:IsShown() then assert(right(ui.manage)<=left(ui.drag)) end
+  if ui.langHeader and ui.langHeader:IsShown() then assert(not overlaps(ui.drag,ui.langHeader)) end
+  if ui.profile:IsShown() then assert(right(ui.profile)<=left(ui.drag) or right(ui.drag)<=left(ui.profile)) end
+  if ui.manage:IsShown() then assert(not overlaps(ui.drag,ui.manage)) end
  end
  if ui.profile:IsShown() then assert(right(ui.header)<=left(ui.profile)) end
  if ui.manage:IsShown() then assert(right(ui.manage)<left(ui.styleButton)) end
+ if ui.langHeader and ui.langHeader:IsShown() then assert(right(ui.langHeader)<=left(ui.styleButton)) end
  for _,row in ipairs(ui.options) do
   assert(bottom(row.title)<=row:GetHeight() and bottom(row.section)<=row:GetHeight())
   for _,c in ipairs({row.toggle,row.choice,row.slider,row.minus,row.plus,row.value}) do

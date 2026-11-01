@@ -2,6 +2,12 @@ local H=AzerothHub
 local ui
 local function L(s) return H.T(s) end
 local function LF(s,...) return H.TF(s,unpack(arg)) end
+local function langCaption()
+ local codes,values=H.LanguageChoices()
+ local cur=H.db and H.db.language or "auto"
+ for i,c in ipairs(codes) do if c==cur then return values[i] end end
+ return values[1]
+end
 local styles={
  grimoire={name="Grimoire",w=1120,h=740,bg={.105,.09,.07},panel={.15,.13,.10},field={.075,.07,.055},line={.32,.27,.19},accent={.83,.68,.42},text={.94,.89,.79}},
  atelier={name="Atelier",w=1280,h=740,bg={.10,.125,.14},panel={.14,.17,.19},field={.075,.095,.11},line={.25,.31,.33},accent={.56,.77,.70},text={.91,.95,.94}},
@@ -143,7 +149,7 @@ function H.PeekInGame()
 end
 function H.HideManager()
  if ui then
-  ui:Hide();ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide();ui.returnBar:Hide()
+  ui:Hide();ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.langMenu:Hide();ui.shade:Hide();ui.returnBar:Hide()
   if ui.tipOwned and GameTooltip then GameTooltip:Hide();ui.tipOwned=nil end
  end
 end
@@ -202,23 +208,52 @@ function H.SetAppearance(mode)
  return true
 end
 function H.ShowAppearance()
- ui.profiles:Hide();ui.categories:Hide();if H.db.appearance=="compact" then ui.addons:Hide() end
- if ui.langButton then
-  local codes,values=H.LanguageChoices()
-  local cur=H.db and H.db.language or "auto"
-  local caption=values[1]
-  for i,c in ipairs(codes) do if c==cur then caption=values[i];break end end
-  put(ui.langButton,caption)
- end
+ ui.profiles:Hide();ui.categories:Hide();if ui.langMenu then ui.langMenu:Hide() end
+ if H.db.appearance=="compact" then ui.addons:Hide() end
  ui.shade:Show();ui.appearance:Show();skin()
 end
 local function showProfiles()
- ui.categories:Hide();ui.appearance:Hide();if H.db.appearance=="compact" then ui.addons:Hide() end
+ ui.categories:Hide();ui.appearance:Hide();if ui.langMenu then ui.langMenu:Hide() end
+ if H.db.appearance=="compact" then ui.addons:Hide() end
  show(ui.profiles,not ui.profiles:IsShown());show(ui.shade,ui.profiles:IsShown());H.RefreshUI()
 end
 local function categoryMenu()
  ui.categories.offset=ui.categories.offset or 0
  show(ui.categories,not ui.categories:IsShown());H.RefreshUI()
+end
+local function setLanguage(code)
+ if code~="auto" and not (H.IsKnownLanguage and H.IsKnownLanguage(code)) then return end
+ H.db.language=code
+ if H.ApplyLocale then H.ApplyLocale() end
+ if ui.langMenu then ui.langMenu:Hide() end
+ put(ui.langHeader,fit(langCaption().."  v",ui.langHeader:GetWidth()-16,12))
+ put(ui.styleButton,L("Appearance"))
+ put(ui.profile,L("Profile"));put(ui.manage,L("Addon"))
+ put(ui.original,L("Original options"));put(ui.peek,L("View in game"))
+ put(ui.returnButton,L("Back to Hub"))
+ H.needsReload=true
+ H.RefreshUI()
+end
+local function showLangMenu()
+ ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide()
+ if ui.langMenu:IsShown() then ui.langMenu:Hide();return end
+ local codes,values=H.LanguageChoices()
+ local cur=H.db.language or "auto"
+ local n=table.getn(codes)
+ local rowH=28
+ ui.langMenu:SetHeight(12+n*rowH)
+ for i,b in ipairs(ui.langRows) do
+  local code,label=codes[i],values[i]
+  show(b,code~=nil);b.lang=code
+  if code then
+   place(b,ui.langMenu,8,8+(i-1)*rowH,ui.langMenu:GetWidth()-16,rowH-4)
+   put(b,fit(label,b:GetWidth()-16,12));b.hubSelected=code==cur;paint(b)
+  end
+ end
+ local menuW=220
+ local menuX=math.max(8,ui:GetWidth()-40-28-8-108-8-menuW)
+ place(ui.langMenu,ui,menuX,42,menuW,12+n*rowH)
+ ui.langMenu:Show()
 end
 local function placeBody()
  local t=theme();local mode=H.db.appearance;local w=t.w
@@ -277,18 +312,31 @@ function H.LayoutManager()
  local sw,sh=UIParent:GetWidth() or 0,UIParent:GetHeight() or 0
  if sw>64 and sh>64 then ui:SetScale(math.min(1,(sw-32)/w,(sh-32)/h)) else ui:SetScale(1) end
  place(ui.header,ui,0,0,216,48);place(ui.title,ui.header,12,8,190,30)
- place(ui.close,ui,w-40,10,28,28);place(ui.styleButton,ui,w-156,10,108,28)
- local profileW=compact and 172 or 206
- local manageW=compact and 214 or 28
+ place(ui.close,ui,w-40,10,28,28)
+ place(ui.styleButton,ui,w-156,10,108,28)
+ local langW=compact and 110 or 200
+ local langX=w-40-28-8-108-8-langW
+ place(ui.langHeader,ui,langX,10,langW,28)
+ put(ui.langHeader,fit(langCaption().."  v",langW-16,12))
+ put(ui.styleButton,L("Appearance"))
+ local profileW=compact and 140 or 206
+ local manageX=compact and 420 or 408
+ local manageW=compact and 140 or 28
+ if compact then manageW=math.max(80,math.min(manageW,langX-manageX-8)) end
  place(ui.profile,ui,228,10,profileW,28)
- place(ui.manage,ui,408,10,manageW,28)
+ place(ui.manage,ui,manageX,10,manageW,28)
  show(ui.profile,not atelier);show(ui.manage,compact)
  show(ui.hint,false);show(ui.saved,false);show(ui.subtitle,false)
  -- The real client has no frame.points table; that field exists only in the test mock.
  local dragL=216
  if not atelier then dragL=math.max(dragL,228+profileW+8) end
- if compact then dragL=math.max(dragL,408+manageW+8) end
- local dragR=w-164
+ local dragR=langX-8
+ if compact then
+  -- Drag strip between Profile and Addon; language sits with Apparence on the right.
+  dragL=228+profileW+8;dragR=manageX-8
+ elseif not atelier then
+  dragR=math.min(dragR,langX-8)
+ end
  if dragR-dragL>20 then place(ui.drag,ui,dragL,0,dragR-dragL,48);show(ui.drag,true) else show(ui.drag,false) end
  local top,bottom=56,h-44;ui.bodyTop,ui.bodyBottom=top,bottom
  show(ui.profileRail,atelier);place(ui.profileRail,ui,10,top,168,bottom-top)
@@ -527,6 +575,7 @@ local function build()
  ui.title=label(ui.header,12,8,190,30,"Azeroth Hub",20,"heading")
  ui.subtitle=label(ui.header,12,32,8,8,"",11,"muted");ui.subtitle:Hide()
  ui.close=button(ui,0,0,28,28,"X",H.HideManager);ui.styleButton=button(ui,0,0,108,28,L("Appearance"),H.ShowAppearance)
+ ui.langHeader=button(ui,0,0,200,28,langCaption().."  v",showLangMenu)
  ui.saved=label(ui,0,0,8,8,"",11,"accent");ui.saved:Hide()
  ui.profile=button(ui,0,0,190,28,L("Profile"),showProfiles);ui.manage=button(ui,0,0,180,28,L("Addon"),showProfiles)
  ui.hint=label(ui,0,0,8,8,"",11,"muted");ui.hint:Hide()
@@ -642,7 +691,15 @@ local function build()
  ui.shade=CreateFrame("Button",nil,ui);ui.shade:SetAllPoints(ui);ui.shade:SetFrameStrata("FULLSCREEN_DIALOG")
  if ui.shade.SetFrameLevel then ui.shade:SetFrameLevel(90) end
  ui.shade:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8"});ui.shade:SetBackdropColor(0,0,0,.60);ui.shade:Hide()
- ui.shade:SetScript("OnClick",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide() end)
+ ui.langMenu=CreateFrame("Frame",nil,ui);surface(ui.langMenu,"panel");ui.langMenu:SetFrameStrata("FULLSCREEN_DIALOG")
+ if ui.langMenu.SetFrameLevel then ui.langMenu:SetFrameLevel(120) end;ui.langMenu:EnableMouse(true);ui.langRows={}
+ for i=1,16 do
+  local b=button(ui.langMenu,8,8+(i-1)*28,204,26,"",function() end)
+  b:SetScript("OnClick",function() if b.lang then setLanguage(b.lang) end end)
+  ui.langRows[i]=b
+ end
+ ui.langMenu:Hide()
+ ui.shade:SetScript("OnClick",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.langMenu:Hide();ui.shade:Hide() end)
  ui.profiles=makeDialog("AzerothHubProfileMenu",490,470,L("Your profiles"));ui.profileRows={};ui.profiles.rows=ui.profileRows
  ui.profilesHelp=label(ui.profiles,20,50,450,40,L("This profile stores integrated addon settings.\nCollections, history and activation are not copied."),11,"muted")
  for i=1,6 do local b=button(ui.profiles,20,96+(i-1)*40,450,34,"",function() end);b:SetScript("OnClick",function() if b.profile then ui.profiles:Hide();ui.shade:Hide();result(H.UseConfigProfile(b.profile)) end end);wheel(b,function(d) ui.profileOffset=ui.profileOffset-d;H.RefreshUI() end);ui.profileRows[i]=b end
@@ -657,35 +714,14 @@ local function build()
   if ok then H.SelectProfile(name);H.db.activeProfile=name;ui.profiles:Hide();ui.shade:Hide() end;result(ok,err)
  end)
  ui.apply=button(ui.profiles,20,424,450,28,L("Reapply saved settings"),function() result(H.UseConfigProfile(H.profile)) end)
- ui.appearance=makeDialog("AzerothHubAppearance",510,470,L("Hub appearance"));ui.styleChoices={}
+ ui.appearance=makeDialog("AzerothHubAppearance",510,370,L("Hub appearance"));ui.styleChoices={}
  ui.appearanceHelp=label(ui.appearance,20,52,470,36,L("This choice is saved here. Changing profile does not change appearance."),11,"muted")
  local descriptions={grimoire=L("Grimoire: addons on the left, settings on the right"),atelier=L("Workshop: profiles stay in a column"),compact=L("Compact: short window, addon in the header")}
  for i,mode in ipairs({"grimoire","atelier","compact"}) do
   local key=mode;ui.styleChoices[key]=button(ui.appearance,20,100+(i-1)*76,470,62,descriptions[key],function() result(H.SetAppearance(key)) end)
  end
- ui.langTitle=label(ui.appearance,20,340,470,20,L("Interface language"),12,"accent")
- local function langCaption()
-  local codes,values=H.LanguageChoices()
-  local cur=H.db and H.db.language or "auto"
-  for i,c in ipairs(codes) do if c==cur then return values[i] end end
-  return values[1]
- end
- ui.langButton=button(ui.appearance,20,368,470,40,"",function()
-  local codes=H.LanguageChoices()
-  local cur=H.db.language or "auto"
-  local idx=1
-  for i,c in ipairs(codes) do if c==cur then idx=i;break end end
-  idx=math.mod(idx,table.getn(codes))+1
-  H.db.language=codes[idx]
-  if H.ApplyLocale then H.ApplyLocale() end
-  put(ui.langButton,langCaption())
-  H.needsReload=true
-  H.RefreshUI()
- end)
- put(ui.langButton,langCaption())
- ui.langHint=label(ui.appearance,20,416,470,36,L("Follow the game language or force one of the 14 supported languages. Requires /reload to rebuild the Hub window."),10,"muted")
  ui.closed={};ui.addonOffset=0;ui.optionOffset=0;ui.ready=true;ui.openedNative=nil
- ui:SetScript("OnHide",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.shade:Hide() end)
+ ui:SetScript("OnHide",function() ui.profiles:Hide();ui.appearance:Hide();ui.categories:Hide();ui.langMenu:Hide();ui.shade:Hide() end)
  H.selected=H.selected or (H.byName.AzerothFieldKit and "AzerothFieldKit") or (H.rows[1] and H.rows[1].name)
  H.LayoutManager();H.RefreshUI()
 end

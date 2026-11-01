@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3 - 2026-11-01
+
+- Sélecteur de **langue** visible en haut à côté d’Apparence, menu déroulant avec les 14 langues + Automatic.
+
 ## 0.7.2 - 2026-11-01
 
 - Langue aussi dans **Apparence** (plus besoin de chercher Azeroth Hub dans la liste).
